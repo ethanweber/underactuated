@@ -87,7 +87,7 @@ class PlanarRigidBodyVisualizer(PyPlotVisualizer):
                  ylim=[-1, 1],
                  facecolor=[1, 1, 1],
                  use_random_colors=False):
-        PyPlotVisualizer.__init__(self)
+        PyPlotVisualizer.__init__(self, facecolor=facecolor)
         self.set_name('planar_rigid_body_visualizer')
 
         self.rbtree = rbtree
@@ -118,9 +118,9 @@ class PlanarRigidBodyVisualizer(PyPlotVisualizer):
         self.body_fill_list = []
         q0 = np.zeros((self.rbtree.get_num_positions(),))
         kinsol = self.rbtree.doKinematics(q0)
-        n_bodies = self.rbtree.get_num_bodies()-1
+        n_bodies = self.rbtree.get_num_bodies()
         for body_i in range(n_bodies):
-            tf = self.rbtree.relativeTransform(kinsol, 0, body_i+1)
+            tf = self.rbtree.relativeTransform(kinsol, 0, body_i)
             viewPatches, viewColors = self.getViewPatches(body_i, tf)
             for patch, color in zip(viewPatches, viewColors):
                 self.body_fill_list += self.ax.fill(patch[0, :],
@@ -143,10 +143,10 @@ class PlanarRigidBodyVisualizer(PyPlotVisualizer):
         # random colors for some bodies. Each body will be given
         # a unique color when using this random generator, with
         # each visual element of the body colored the same.
-        n_bodies = self.rbtree.get_num_bodies()-1
+        n_bodies = self.rbtree.get_num_bodies()
         color = iter(plt.cm.rainbow(np.linspace(0, 1, n_bodies)))
         for body_i in range(n_bodies):
-            body = self.rbtree.get_body(body_i+1)
+            body = self.rbtree.get_body(body_i)
             visual_elements = body.get_visual_elements()
             this_body_patches = []
             this_body_colors = []
@@ -217,8 +217,8 @@ class PlanarRigidBodyVisualizer(PyPlotVisualizer):
             self.viewPatchColors.append(this_body_colors)
 
     def getViewPatches(self, body_i, tf):
-        ''' Pulls out the view patch verts for the given body index after applying
-            the appropriate TF '''
+        ''' Pulls out the view patch verts for the given body index after
+            applying the appropriate TF '''
         projected_tf = np.dot(np.dot(self.Tview, tf), self.Tview_pinv)
         transformed_patches = [np.dot(projected_tf, patch)[0:2]
                                for patch in self.viewPatches[body_i]]
@@ -239,8 +239,8 @@ class PlanarRigidBodyVisualizer(PyPlotVisualizer):
         kinsol = self.rbtree.doKinematics(positions)
 
         body_fill_index = 0
-        for body_i in range(self.rbtree.get_num_bodies()-1):
-            tf = self.rbtree.relativeTransform(kinsol, 0, body_i+1)
+        for body_i in range(self.rbtree.get_num_bodies()):
+            tf = self.rbtree.relativeTransform(kinsol, 0, body_i)
             viewPatches, _ = self.getViewPatches(body_i, tf)
             for patch in viewPatches:
                 self.body_fill_list[body_fill_index].get_path().vertices[:, :] = np.transpose(patch)  # noqa
@@ -358,7 +358,7 @@ if __name__ == "__main__":
 
         torque = args.torque
         torque_system = builder.AddSystem(ConstantVectorSource(
-                                np.ones((rbt.get_num_actuators(), 1))*torque))
+            np.ones((rbt.get_num_actuators(), 1))*torque))
         builder.Connect(torque_system.get_output_port(0),
                         rbplant_sys.get_input_port(0))
         print('Simulating with constant torque = '
