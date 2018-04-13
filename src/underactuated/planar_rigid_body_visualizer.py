@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 import scipy as sp
 import scipy.spatial
 
+import pydrake # Ethan added to remove NameError
+
 from pydrake.all import (
     AddModelInstanceFromUrdfStringSearchingInRosPackages,
     ConstantVectorSource,
@@ -274,7 +276,7 @@ def setupValkyrieExample():
     from pydrake.multibody.parsers import PackageMap
     pmap = PackageMap()
     # Note: Val model is currently not installed in drake binary distribution.
-    pmap.PopulateFromFolder(os.path.join(pydrake. getDrakePath(), "examples"))
+    pmap.PopulateFromFolder(os.path.join(pydrake.getDrakePath(), "examples"))
     # TODO(russt): remove plane.urdf and call AddFlatTerrainTOWorld instead
     AddModelInstanceFromUrdfStringSearchingInRosPackages(
         open(FindResource(os.path.join("underactuated", "plane.urdf")), 'r').read(),  # noqa
