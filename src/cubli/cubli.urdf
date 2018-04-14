@@ -10,6 +10,24 @@
       <geometry>
         <box size="1000 1000 10" />
       </geometry>
+      <inertial>
+        <pose frame=''>0 0 0 0 0 0</pose>
+        <mass>0</mass>
+        <inertia>
+          <ixx>0</ixx>
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>0</iyy>
+          <iyz>0</iyz>
+          <izz>0</izz>
+        </inertia>
+      </inertial>
+      <collision name='ground_collision'>
+        <origin xyz="0 0 -5" rpy="0 0 0"/>
+        <geometry>
+          <box size="1000 1000 10" />
+        </geometry>
+      </collision>
       <material>
         <color rgba="0.93 .74 .4 1" />
       </material>
@@ -22,6 +40,12 @@
       <mass value="10" />
       <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
     </inertial>
+    <collision name='cube_collision'>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size=".5 .5 .5" />
+      </geometry>
+    </collision>
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0" />
       <geometry>
@@ -47,7 +71,7 @@
     </visual>
   </link>
 
-  <joint name="x" type="prismatic">
+  <joint name="x" type="floating">
     <parent link="ground" />
     <child link="cube" />
     <origin xyz="0 0 .25" />
