@@ -17,14 +17,14 @@ timestep = 0.0
 #                      FloatingBaseType.kFixed)
 builder = DiagramBuilder()
 tree = RigidBodyTree()
-AddModelInstancesFromSdfString(
-    open("underactuated/src/cubli/cubli.sdf", 'r').read(),
-    FloatingBaseType.kFixed,
-    None, tree)
+# AddModelInstancesFromSdfString(
+#     open("underactuated/src/cubli/cubli.sdf", 'r').read(),
+#     FloatingBaseType.kFixed,
+#     None, tree)
 
 # tree
-# tree = RigidBodyTree(FindResource("cubli/cubli.urdf"),
-#                      FloatingBaseType.kFixed)
+tree = RigidBodyTree(FindResource("cubli/cubli.urdf"),
+                     FloatingBaseType.kFixed)
 # plant = RigidBodyPlant(tree, timestep)
 plant = RigidBodyPlant(tree)
 nx = tree.get_num_positions() + tree.get_num_velocities()

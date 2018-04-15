@@ -89,7 +89,7 @@
 
   <transmission type="SimpleTransmission" name="cube_force">
     <actuator name="force" />
-    <joint name="x" />
+    <joint name="theta" />
     <mechanicalReduction>1</mechanicalReduction>
   </transmission>
 </robot>
