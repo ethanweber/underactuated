@@ -77,14 +77,14 @@ state = context.get_mutable_state().get_mutable_continuous_state().get_mutable_v
 num_states = tree.get_num_positions() + tree.get_num_velocities()
 print num_states
 
-state.SetFromVector((0.,0.,1.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.))
+state.SetFromVector((-1.0,0.,0.5,0.,0.,0.,0.,1.0,0.,1.0,0.,0.,0.,0.))
 
 integrator = simulator.get_mutable_integrator()
 integrator.set_fixed_step_mode(True)
 integrator.set_maximum_step_size(0.0005)
 
 # state.SetFromVector((2,2,10,0,0,0,0,0,0,0))
-simulator.StepTo(5)
+simulator.StepTo(2)
 
 print(state.CopyToVector())
 

@@ -10,35 +10,42 @@
       <geometry>
         <box size="1000 1000 10" />
       </geometry>
-      <inertial>
-        <pose frame=''>0 0 0 0 0 0</pose>
-        <mass>0</mass>
-        <inertia>
-          <ixx>0</ixx>
-          <ixy>0</ixy>
-          <ixz>0</ixz>
-          <iyy>0</iyy>
-          <iyz>0</iyz>
-          <izz>0</izz>
-        </inertia>
-      </inertial>
-      <collision name='ground_collision'>
-        <origin xyz="0 0 -5" rpy="0 0 0"/>
-        <geometry>
-          <box size="1000 1000 10" />
-        </geometry>
-      </collision>
       <material>
         <color rgba="0.93 .74 .4 1" />
       </material>
     </visual>
+    <inertial>
+      <pose frame=''>0 0 0 0 0 0</pose>
+      <mass>0</mass>
+      <inertia>
+        <ixx>0</ixx>
+        <ixy>0</ixy>
+        <ixz>0</ixz>
+        <iyy>0</iyy>
+        <iyz>0</iyz>
+        <izz>0</izz>
+      </inertia>
+    </inertial>
+    <collision name='ground_collision'>
+      <origin xyz="0 0 -5" rpy="0 0 0"/>
+      <geometry>
+        <box size="1000 1000 10" />
+      </geometry>
+    </collision>
   </link>
 
   <link name="cube">
     <inertial>
-      <origin xyz="0 0 0" rpy="0 0 0" />
-      <mass value="10" />
-      <inertia ixx="0" ixy="0" ixz="0" iyy="0" iyz="0" izz="0" />
+      <pose frame=''>0 0 0 0 0 0</pose>
+      <mass>10.0</mass>
+      <inertia>
+        <ixx>1.0</ixx>
+        <ixy>0</ixy>
+        <ixz>0</ixz>
+        <iyy>1.0</iyy>
+        <iyz>0</iyz>
+        <izz>1.0</izz>
+      </inertia>
     </inertial>
     <collision name='cube_collision'>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -71,10 +78,10 @@
     </visual>
   </link>
 
-  <joint name="x" type="floating">
+  <joint name="cube_position" type="floating">
     <parent link="ground" />
     <child link="cube" />
-    <origin xyz="0 0 .25" />
+    <origin xyz="0 0 .25"/>
     <axis xyz="1 0 0" />
     <dynamics damping="0.1" />
   </joint>
@@ -83,7 +90,19 @@
     <parent link="cube" />
     <child link="wheel" />
     <origin xyz="0 0 0" />
-    <axis xyz="1 0 0" />
+    <axis>
+      <xyz>1 0 0</xyz>
+      <limit>
+        <effort>0.0</effort>
+      </limit>
+      <dynamics>
+        <damping>0</damping>
+        <friction>0</friction>
+        <spring_reference>0</spring_reference>
+        <spring_stiffness>0</spring_stiffness>
+      </dynamics>
+      <use_parent_model_frame>1</use_parent_model_frame>
+    </axis>
     <dynamics damping="0.1" />
   </joint>
 
