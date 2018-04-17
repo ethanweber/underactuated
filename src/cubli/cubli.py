@@ -16,7 +16,6 @@ timestep = 0.0
 # tree = RigidBodyTree(FindResource("cubli/cubli.sdf"),
 #                      FloatingBaseType.kFixed)
 builder = DiagramBuilder()
-tree = RigidBodyTree()
 # AddModelInstancesFromSdfString(
 #     open("underactuated/src/cubli/cubli.sdf", 'r').read(),
 #     FloatingBaseType.kFixed,
