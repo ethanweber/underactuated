@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from pydrake.all import (SignalLogger, CompliantMaterial, ConstantVectorSource, DirectCollocation, DiagramBuilder, FloatingBaseType,
                          PiecewisePolynomial, RigidBodyTree, RigidBodyPlant,
                          SolutionResult, AddModelInstancesFromSdfString,
-                         MathematicalProgram, Simulator, BasicVector, )
+                         MathematicalProgram, Simulator, BasicVector, AddFlatTerrainToWorld)
 from underactuated import (FindResource, PlanarRigidBodyVisualizer)
 
 
@@ -25,12 +25,15 @@ tree = RigidBodyTree()
 # tree
 tree = RigidBodyTree(FindResource("cubli/cubli.urdf"),
                      FloatingBaseType.kFixed)
+
+#
+# AddFlatTerrainToWorld(tree, 1000, -1)
 # plant = RigidBodyPlant(tree, timestep)
 plant = RigidBodyPlant(tree)
 nx = tree.get_num_positions() + tree.get_num_velocities()
 
 allmaterials = CompliantMaterial()
-allmaterials.set_youngs_modulus(1E8) # default 1E9
+allmaterials.set_youngs_modulus(1E9) # default 1E9
 allmaterials.set_dissipation(1.0) # default 0.32
 allmaterials.set_friction(1.0) # default 0.9.
 plant.set_default_compliant_material(allmaterials)
@@ -77,7 +80,8 @@ state = context.get_mutable_state().get_mutable_continuous_state().get_mutable_v
 num_states = tree.get_num_positions() + tree.get_num_velocities()
 print num_states
 
-state.SetFromVector((-1.0,0.,0.5,0.,0.,0.,0.,1.0,0.,1.0,0.,0.,0.,0.))
+state.SetFromVector((-1.0,0.,1.5,0.,0.,0.,0.,1.0,0.,1.0,0.,0.,0.,-10.0))
+# state.SetFromVector((0.0,0.,0.1,0.,0.,0.,0.,0.0,0.,0.0,0.,0.,0.,0.))
 
 integrator = simulator.get_mutable_integrator()
 integrator.set_fixed_step_mode(True)
