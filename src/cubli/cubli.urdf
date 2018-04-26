@@ -55,7 +55,7 @@
   	<visual>
       <origin rpy="1.5707963267948966 0 0"/>
       <geometry>
-        <cylinder radius="0.15" length=".25"/>
+        <box size="0.25 0.25 .6" />
       </geometry>
     </visual>
   </link>

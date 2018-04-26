@@ -76,7 +76,7 @@
       </material>
     </visual>
   </link>
-  
+
   <joint name="x" type="prismatic">
     <parent link="ground" />
     <child link="cart" />

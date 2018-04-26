@@ -17,6 +17,7 @@ from underactuated import (PlanarRigidBodyVisualizer)
 tree = RigidBodyTree(FindResourceOrThrow(
                         "drake/examples/rimless_wheel/RimlessWheel.urdf"),
                      FloatingBaseType.kRollPitchYaw)
+                     
 params = RimlessWheelParams()
 R = np.identity(3)
 R[0, 0] = math.cos(params.slope())
