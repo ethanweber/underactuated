@@ -11,6 +11,10 @@ jobs:
       - checkout
 
       - run:
+          name: test prospective merge instead of PR branch
+          command: git rebase master
+
+      - run:
           name: setup
           command: ./scripts/continuous_integration/circle_ci/setup
 

@@ -45,22 +45,20 @@ apt install -qq --no-install-recommends $(tr '\n' ' ' <<EOF
 build-essential
 curl
 ffmpeg
+libzmq5
 python
 python-dev
 python-matplotlib
 python-pip
+python-setuptools
+python-wheel
 EOF
 )
 
-pip install --upgrade $(tr '\n' ' ' <<EOF
-pip
-setuptools
-EOF
-)
-
-pip install --upgrade $(tr '\n' ' ' <<EOF
+pip install --upgrade --disable-pip-version-check $(tr '\n' ' ' <<EOF
 jupyter
 pycodestyle
+meshcat
 EOF
 )
 

@@ -5,6 +5,7 @@ import math
 import os.path
 
 import numpy as np
+import matplotlib
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 import scipy as sp
@@ -87,7 +88,12 @@ class PlanarRigidBodyVisualizer(PyPlotVisualizer):
                  ylim=[-1, 1],
                  facecolor=[1, 1, 1],
                  use_random_colors=False):
-        PyPlotVisualizer.__init__(self, facecolor=facecolor)
+
+        default_size = matplotlib.rcParams['figure.figsize']
+        scalefactor = (ylim[1]-ylim[0])/(xlim[1]-xlim[0])
+        figsize = (default_size[0], default_size[0]*scalefactor)
+
+        PyPlotVisualizer.__init__(self, facecolor=facecolor, figsize=figsize)
         self.set_name('planar_rigid_body_visualizer')
 
         self.rbtree = rbtree
@@ -101,6 +107,7 @@ class PlanarRigidBodyVisualizer(PyPlotVisualizer):
                                self.rbtree.get_num_positions() +
                                self.rbtree.get_num_velocities())
 
+        # Achieve the desired view limits
         self.ax.set_xlim(xlim)
         self.ax.set_ylim(ylim)
 
@@ -274,6 +281,7 @@ def setupValkyrieExample():
     world_frame = RigidBodyFrame("world_frame", rbt.world(),
                                  [0, 0, 0], [0, 0, 0])
     from pydrake.multibody.parsers import PackageMap
+    import pydrake
     pmap = PackageMap()
     # Note: Val model is currently not installed in drake binary distribution.
     pmap.PopulateFromFolder(os.path.join(pydrake.getDrakePath(), "examples"))

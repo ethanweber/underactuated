@@ -218,12 +218,11 @@
               for (j = 0; j < pysrcTags.length; j++) {
                   var file = pysrcTags[j].innerHTML;
                   // TODO(russt): Consider checking that the file exists.
-                  pysrcTags[j].innerHTML =
-                              '<p><pre style="margin-left:6px"><code>python <a href="src/'+ file + '">' + file + '</a>';
+                  var tmp = '<p><pre style="margin-left:6px"><code>python <a href="src/'+ file + '">' + file + '</a>';
                   if (pysrcTags[j].hasAttribute("args")) {
-                      pysrcTags[j].innerHTML += ' '+ pysrcTags[j].getAttribute("args");
+                      tmp += ' '+ pysrcTags[j].getAttribute("args");
                   }
-                  pysrcTags[j].innerHTML += '</code></pre></p>';
+                  pysrcTags[j].innerHTML = tmp + '</code></pre></p>';
               }
 
 
@@ -891,9 +890,9 @@ semester.</p>
     <div data-type="drake"><h1>Python Example</h1> You can run these examples
     using:
 
-    <pysrc args="--gravity 9.8">double_pendulum/as_single_pendulum.py</pysrc>
+    <pysrc args="--gravity=9.8">double_pendulum/as_single_pendulum.py</pysrc>
 
-    <pysrc args="--gravity -9.8">double_pendulum/as_single_pendulum.py</pysrc>
+    <pysrc args="--gravity=-9.8">double_pendulum/as_single_pendulum.py</pysrc>
 
     <p>As always, make soure you take a moment to read through the source
     code (linked above).</p>
@@ -2600,30 +2599,21 @@ complete trajectory.</p>
       solution.  Convergence to this stable periodic solution appears to happen
       from a huge range of initial conditions.  Try it yourself.</p>
 
-      <p><i>Python version of this example coming soon!</i></p>
-      <todo>Update this to pydrake</todo>
-
-<!--
       <div data-type="example" class="drake"><h1>Numerical simulation of the
       rimless wheel</h1>
 
-        <pre><code class="matlab" testfile="testRimlessWheelRun">
-        cd(fullfile(getDrakePath,'examples','RimlessWheel'));
-        RimlessWheelPlant.run();
-        </code></pre>
+        <pysrc>rimless_wheel/simulate.py</pysrc>
 
-        Optionally you can specify the initial conditions.  Here are a few good values to try.  (You can
-        either run the code yourself or click on the links below to see the animation).
-        <ul>
-          <li><a href="figures/rimlessWheel_w0_5.swf"><code>RimlessWheelPlant.run(5)</code></a></li>
-          <li><a href="figures/rimlessWheel_w0_10.swf"><code>RimlessWheelPlant.run(10)</code></a></li>
-          <li><a href="figures/rimlessWheel_w0_0.95.swf"><code>RimlessWheelPlant.run(.95)</code></a></li>
-          <li><a href="figures/rimlessWheel_w0_-5.swf"><code>RimlessWheelPlant.run(-5)</code></a></li>
-          <li><a href="figures/rimlessWheel_w0_-4.8.swf"><code>RimlessWheelPlant.run(-4.8)</code></a></li>
-        </ul>
+        <p>Optionally you can specify the initial conditions.  Here are a few
+        good values to try:</p>
+
+        <pysrc args="--initial_angular_velocity=5.0">rimless_wheel/simulate.py</pysrc>
+        <pysrc args="--initial_angular_velocity=10.0">rimless_wheel/simulate.py</pysrc>
+        <pysrc args="--initial_angular_velocity=0.95">rimless_wheel/simulate.py</pysrc>
+        <pysrc args="--initial_angular_velocity=-5.0">rimless_wheel/simulate.py</pysrc>
+        <pysrc args="--initial_angular_velocity=-4.8">rimless_wheel/simulate.py</pysrc>
 
       </div>
--->
 
       <p>One of the fantastic things about the rimless wheel is that the
       dynamics are exactly the undamped simple pendulum that we've thought so
@@ -2851,7 +2841,7 @@ complete trajectory.</p>
     frame).</p>
 
     <figure>
-    <img width="45%" data-src="figures/compassGait.svg"/>
+    <img width="45%" data-src="figures/compass_gait.svg"/>
     <figcaption>The compass gait</figcaption>
     </figure>
 
@@ -2881,7 +2871,8 @@ complete trajectory.</p>
     <p>The foot collision is an instantaneous change of velocity caused by a
     impulsive force at the foot that brings the foot to rest.  The update to the
     velocities can be calculated using the derivation for impulsive collisions
-      derived in the appendix.  To use it, we proceed with the following steps:</p>
+    derived in the appendix.  To use it, we proceed with the following
+    steps:</p>
 
     <ul> <li>Add a "floating base" to the system by adding a free (x,y) joint at
     the pre-impact stance toe, $\bq_{fb} =
@@ -2891,27 +2882,38 @@ complete trajectory.</p>
     of this function: $\bJ = \frac{\partial \bphi}{\partial \bq_{fb}}.$</li>
     <li>The post-impact velocity that ensures that $\dot\bphi = 0$ after the
     collision is given by $$\dot\bq^+ = \left[ \bI -
-    \bM_{fb}^{-1}\bJ^T[\bJ\bM_{fb}^{-1}\bJ^T]^{-1}\bJ\right] \dot\bq^-,$$ noting that
-    $\dot{x}^- = \dot{y}^- = 0$, and that you need only read out the last two
-    elements of $\dot{\bq}^+$.  The velocity of the post-impact stance foot will
-    be zero by definition, and the new velocity of the pre-impact stance foot
-    can be completley determined from the minimal coordinates.</li> <li>Switch
-    the stance and swing leg positions and velocities.</li> </ul>
+    \bM_{fb}^{-1}\bJ^T[\bJ\bM_{fb}^{-1}\bJ^T]^{-1}\bJ\right] \dot\bq^-,$$ noting
+    that $\dot{x}^- = \dot{y}^- = 0$, and that you need only read out the last
+    two elements of $\dot{\bq}^+$.  The velocity of the post-impact stance foot
+    will be zero by definition, and the new velocity of the pre-impact stance
+    foot can be completely determined from the minimal coordinates.</li>
+    <li>Switch the stance and swing leg positions and velocities.</li> </ul>
 
     <!-- My derivation is here: https://www.wolframcloud.com/objects/60e3d6c1-156f-4604-bf70-1e374f471407 -->
 
-    <p>Numerical integration of these equations reveals a stable limit cycle,
-    plotted below.  The cycle is composed of a swing phase (top) and a stance
-    phase (bottom), punctuated by two instantaneous changes in velocity which
-    correspond to the ground collisions.  The dependence of this limit cycle on
-    the system parameters has been studied extensively in
-    <elib>Goswami96a</elib>.</p>
+    <div data-type="example" class="drake"><h1>Numerical simulation of the
+      compass gait</h1>
 
-    <figure> <img width="80%" data-src="figures/compassGaitLimitCycle.svg"/>
-    <figcaption>Limit cycle trajectory of the compass gait.
-    ($m=5$kg,$m_h=10$kg,$a=b=0.5$m,$\phi=0.03$deg. $\bx(0)=[0,0,2,-0.4]^T$).
-    $\theta_{lPitch}$ is the pitch angle of the left leg, which is recovered
-    from $\theta_{st}$ and $\theta_{sw}$ in the simulation with some simple
+      You can simulate the passive compass gait using:
+
+      <pysrc>compass_gait/simulate.py</pysrc>
+
+    </div>
+
+    <p>Numerical integration of these equations reveals a stable limit cycle,
+    plotted below.  Notice that when the left leg is in stance (top part of the
+    plot), the trajectory quite resembles the familiar pendulum dynamics of the
+    rimless wheel.  But this time, when the leg impacts, it takes a long arc
+    around as the swing leg before returning to stance.  The impacts are also
+    clearly visible as discontinuous changes (decreases) in velocity. The
+    dependence of this limit cycle on the system parameters has been studied
+    extensively in <elib>Goswami96a</elib>.</p>
+
+    <figure> <img width="90%" data-src="figures/compass_gait_limit_cycle.svg"/>
+    <figcaption>Passive limit cycle trajectory of the compass gait. ($m=5$kg,
+    $m_h=10$kg, $a=b=0.5$m, $\phi=0.0525$rad. $\bx(0)=[0,0,0.4,-2.0]^T$).
+    Drawn is the phase portait of the left leg angle, which is recovered from
+    $\theta_{st}$ and $\theta_{sw}$ in the simulation with some simple
     book-keeping.</figcaption> </figure>
 
     <p>The basin of attraction of the stable limit cycle is a narrow band of
@@ -2978,151 +2980,283 @@ complete trajectory.</p>
 <section data-type="chapter" class="chapter"
 id="humanoids"><h1>Highly-articulated Legged Robots</h1>
 
-<p>The passive dynamic walkers and hopping robots described in the last chapter capture the fundamental dynamics of legged locomotion -- dynamics which are fundamentally nonlinear and punctuated by impulsive events due to making and breaking contact with the environment.  But if you start reading the literature on humanoid robots, or many-legged robots like quadrupeds, then you will find a quite different set of ideas taking center stage: ideas like the "zero-moment point" and footstep planning.  The goal of this chapter is to penetrate that world.</p>
+  <p>The passive dynamic walkers and hopping robots described in the last
+  chapter capture the fundamental dynamics of legged locomotion -- dynamics
+  which are fundamentally nonlinear and punctuated by impulsive events due to
+  making and breaking contact with the environment.  But if you start reading
+  the literature on humanoid robots, or many-legged robots like quadrupeds, then
+  you will find a quite different set of ideas taking center stage: ideas like
+  the "zero-moment point" and footstep planning.  The goal of this chapter is to
+  penetrate that world.</p>
 
-<p>I'd like to start the discussion with a model that might seem quite far from the world of legged robots, but I think it's a very useful way to think about the problem.</p>
+  <p>I'd like to start the discussion with a model that might seem quite far
+  from the world of legged robots, but I think it's a very useful way to think
+  about the problem.</p>
 
-<section data-type="sect1"><h1>Center of Mass Dynamics</h1>
+  <section data-type="sect1"><h1>Center of Mass Dynamics</h1>
 
-<section data-type="sect2"><h1>A hovercraft model</h1>
+    <section data-type="sect2"><h1>A hovercraft model</h1>
 
-<figure><img width="70%" data-src="figures/hovercraft.svg"/></figure>
-<todo>flip the directions of the force vector in the image</todo>
+      <figure><img width="70%" data-src="figures/hovercraft.svg"/></figure>
+      <todo>flip the directions of the force vector in the image</todo>
 
-<p>Imagine you have a flying vehicle modeled as a single rigid body in a gravity field with some number of force "thrusters" attached.  We'll describe the configuration of the vehicle by its orientation, $\theta$ and the location of its center of mass $(x,z)$.  The vector from the center of mass to thruster $i$ is given by $r_i$, yielding the equations
-of motion:
-\begin{align*}
-m\ddot{x} =& \sum_i F_{i,x},\\
-m\ddot{z} =& \sum_i F_{i,z} - mg,\\
-I\ddot\theta =& \sum_i \left[ r_i \times F_i \right]_y,
-\end{align*}
-where I've used $F_{i,x}$ to represent the component of the force in the $x$ direction and have taken just the $y$-axis component of the cross product on the last line.
-</p>
+      <p>Imagine you have a flying vehicle modeled as a single rigid body in a
+      gravity field with some number of force "thrusters" attached.  We'll
+      describe the configuration of the vehicle by its orientation, $\theta$ and
+      the location of its center of mass $(x,z)$.  The vector from the center of
+      mass to thruster $i$ is given by $r_i$, yielding the equations of motion:
+      \begin{align*} m\ddot{x} =& \sum_i F_{i,x},\\ m\ddot{z} =& \sum_i F_{i,z}
+      - mg,\\ I\ddot\theta =& \sum_i \left[ r_i \times F_i \right]_y,
+      \end{align*} where I've used $F_{i,x}$ to represent the component of the
+      force in the $x$ direction and have taken just the $y$-axis component of
+      the cross product on the last line. </p>
 
-<p>Our goal is to move the hovercraft to a desired position/orientation and to keep it there.  If we take the inputs to be $F_i$, then the dynamics are affine (linear plus a constant term).  As such, we
-can stabilize a stabilizable fixed point using a change of coordinates plus LQR or even plan/track a desired trajectory using time-varying LQR.  If I were to add additional linear constraints, for instance constraining $F_{min} \le F_i \le F_{max}$, then I can still use linear model-predictive control (MPC) to plan and stabilize a desired motion. By most accounts,
-this is a relatively easy control problem. (Note that it would be considerably harder if my control input or input constraints depend on the orientation, $\theta$, but we don't need that here yet).</p>
+      <p>Our goal is to move the hovercraft to a desired position/orientation
+      and to keep it there.  If we take the inputs to be $F_i$, then the
+      dynamics are affine (linear plus a constant term).  As such, we can
+      stabilize a stabilizable fixed point using a change of coordinates plus
+      LQR or even plan/track a desired trajectory using time-varying LQR.  If I
+      were to add additional linear constraints, for instance constraining
+      $F_{min} \le F_i \le F_{max}$, then I can still use linear
+      model-predictive control (MPC) to plan and stabilize a desired motion. By
+      most accounts, this is a relatively easy control problem. (Note that it
+      would be considerably harder if my control input or input constraints
+      depend on the orientation, $\theta$, but we don't need that here yet).</p>
 
-<p>Now imagine that you just a small number of thrusters (let's say two) each with severe input constraints.  To make things more interesting, let us say that you're allowed to move the thrusters, so $\dot{r}_i$ becomes an additional control input, but with some important limitations:  you have to turn the thrusters off when they are moving (e.g. $|F_i||\dot{r}_i| = 0$) and there is a limit to how quickly you can move the thrusters $|\dot{r}|_i \le v_{max}$.  This problem is now a lot more difficult, due especially to
-the fact that constraints of the form $u_1 u_2 = 0$ are non-convex.</p>
-  <center><img width="25%" data-src="figures/complementarityConstraint.svg"/></center>
-<p>I find this a very useful thought exercise; somehow our controller needs to make an effectively discrete decision to turn off a thruster and move it.  The framework of optimal control should support this - you are sacrificing a short-term loss of control authority for the long-term benefit of having the thruster positioned where you would like, but we haven't developed tools yet that deal well with this discrete plus continuous
-decision making.  We'll need to address that here.</p>
+      <p>Now imagine that you just a small number of thrusters (let's say two)
+      each with severe input constraints.  To make things more interesting, let
+      us say that you're allowed to move the thrusters, so $\dot{r}_i$ becomes
+      an additional control input, but with some important limitations:  you
+      have to turn the thrusters off when they are moving (e.g.
+      $|F_i||\dot{r}_i| = 0$) and there is a limit to how quickly you can move
+      the thrusters $|\dot{r}|_i \le v_{max}$.  This problem is now a lot more
+      difficult, due especially to the fact that constraints of the form $u_1
+      u_2 = 0$ are non-convex.</p> <center><img width="25%"
+      data-src="figures/complementarityConstraint.svg"/></center> <p>I find this
+      a very useful thought exercise; somehow our controller needs to make an
+      effectively discrete decision to turn off a thruster and move it.  The
+      framework of optimal control should support this - you are sacrificing a
+      short-term loss of control authority for the long-term benefit of having
+      the thruster positioned where you would like, but we haven't developed
+      tools yet that deal well with this discrete plus continuous decision
+      making.  We'll need to address that here.</p>
 
-<p>Unfortunately, although the problem is already difficult, we need to continue to add constraints.  Now let's say additionally, that the thrusters can only be turned on in certain locations, as cartooned here:</p>
-  <center><img width="60%" data-src="figures/hovercraftCartesianConstraints.svg"/></center>
-<p>The union of these regions need not form a convex set.  Furthermore, these locations could be specified in the robot frame, but may also be specified in the world frame, which I'll call ${\bf p}_i$: $${\bf p}_i = {\bf r}_i - \begin{bmatrix} x \\ 0 \\ z \end{bmatrix}.$$  This problem still feels like it should be tractable, but it's definitely getting hard.</p>
+      <p>Unfortunately, although the problem is already difficult, we need to
+      continue to add constraints.  Now let's say additionally, that the
+      thrusters can only be turned on in certain locations, as cartooned
+      here:</p> <center><img width="60%"
+      data-src="figures/hovercraftCartesianConstraints.svg"/></center> <p>The
+      union of these regions need not form a convex set.  Furthermore, these
+      locations could be specified in the robot frame, but may also be specified
+      in the world frame, which I'll call ${\bf p}_i$: $${\bf p}_i = {\bf r}_i -
+      \begin{bmatrix} x \\ 0 \\ z \end{bmatrix}.$$  This problem still feels
+      like it should be tractable, but it's definitely getting hard.</p>
 
-</section>
-<section data-type="sect2"><h1>Robots with (massless) legs</h1>
+    </section>
 
-<p>In my view, the hovercraft problem above is a central component of the walking problem.  If we consider a walking robot with massless legs, then the feet are exactly like movable thrusters.  As above, they are highly constrained - they can only produce force when they are touching the ground, and (typically) they can only produce forces in certain directions, for instance as described by a "friction cone" (you can push on the ground but not pull on the ground, and with Coulomb friction the forces tangential to the ground must be smaller than the forces normal to the ground, as described by a coefficient of friction, e.g. $|F_{\parallel}| < \mu |F_{\perp}|$).</p>
+    <section data-type="sect2"><h1>Robots with (massless) legs</h1>
 
-<figure><img width="50%" data-src="figures/hovercraftLegs.svg"/></figure>
+      <p>In my view, the hovercraft problem above is a central component of the
+      walking problem.  If we consider a walking robot with massless legs, then
+      the feet are exactly like movable thrusters.  As above, they are highly
+      constrained - they can only produce force when they are touching the
+      ground, and (typically) they can only produce forces in certain
+      directions, for instance as described by a "friction cone" (you can push
+      on the ground but not pull on the ground, and with Coulomb friction the
+      forces tangential to the ground must be smaller than the forces normal to
+      the ground, as described by a coefficient of friction, e.g.
+      $|F_{\parallel}| < \mu |F_{\perp}|$).</p>
 
-  <p>The constraints on where you can put your feet / thrusters will depend on the kinematics of your leg, and the speed at which you can move them will depend on the full dynamics of the leg -- these are difficult constraints to deal with.  But the actual dynamics of the rigid body are actually still affine, and still simple!</p>
+      <figure><img width="50%" data-src="figures/hovercraftLegs.svg"/></figure>
 
-</section>
-<section data-type="sect2"><h1>Capturing the full robot dynamics</h1>
+      <p>The constraints on where you can put your feet / thrusters will depend
+      on the kinematics of your leg, and the speed at which you can move them
+      will depend on the full dynamics of the leg -- these are difficult
+      constraints to deal with.  But the actual dynamics of the rigid body are
+      actually still affine, and still simple!</p>
 
-<p>We don't actually need to have massless legs for this discussion to make sense.
-If we use the coordinates $x,z$ to describe the location of the center of mass (CoM) of the
-entire robot, and $m$ to represent the entire mass of the robot, then the first two equations
-remain unchanged.  The center of mass is a configuration dependent point, and does not have an orientation, but one important generalization of the orientation dynamics is given by the centroidal momentum matrix, $A(\bq)$, where $A(\bq)\dot{\bq}$ captures the linear and angular momentum of the robot around the center of mass <elib>Orin13</elib>. Note that the center of mass dynamics are still affine -- even for a big complicated humanoid -- but the centroidal momentum dynamics are nonlinear.</p>
+    </section>
 
-</section>
+    <section data-type="sect2"><h1>Capturing the full robot dynamics</h1>
 
-<section data-type="sect2"><h1>Impact dynamics</h1>
+      <p>We don't actually need to have massless legs for this discussion to
+      make sense. If we use the coordinates $x,z$ to describe the location of
+      the center of mass (CoM) of the entire robot, and $m$ to represent the
+      entire mass of the robot, then the first two equations remain unchanged.
+      The center of mass is a configuration dependent point, and does not have
+      an orientation, but one important generalization of the orientation
+      dynamics is given by the centroidal momentum matrix, $A(\bq)$, where
+      $A(\bq)\dot{\bq}$ captures the linear and angular momentum of the robot
+      around the center of mass <elib>Orin13</elib>. Note that the center of
+      mass dynamics are still affine -- even for a big complicated humanoid --
+      but the centroidal momentum dynamics are nonlinear.</p>
 
-<p>In the previous chapter we devoted relatively a lot of attention to dynamics of impact, characterized for instance by a guard that resets dynamics in a hybrid dynamical system.  In those models we used impulsive ground-reaction forces (these forces are instantaneously infinite, but doing finite work) in order to explain the discontinuous change in velocity required to avoid penetration with the ground.  This story can be extended naturally to the dynamics of the center of mass.<p>
+    </section>
 
-<p>For an articulated robot, though, there are a number of possible strategies for the legs which can effect the dynamics of the center of mass.  For example, if the robot hits the ground with a stiff leg like the rimless wheel, then the angular momentum about the point of collision will be conserved, but any momentum going into the ground will be lost.  However, if the robot has a spring leg and a massless toe like the SLIP model, then no energy need be lost.</p>
+    <section data-type="sect2"><h1>Impact dynamics</h1>
 
-<p>One strategy that many highly-articulated legged robots use is to keep their center of mass at a constant height, $$z = c \quad \Rightarrow \quad \dot{z} = \ddot{z} = 0,$$  and minimize their angular momentum about the center of mass (here $\ddot\theta=0$).  Using this strategy, if the swinging foot lands roughly below the center of mass, then even with a stiff leg there is no energy dissipated in the collision - all of the momentum is conserved.  This often (but does not always) justify ignoring the impacts in the center of mass dynamics of the system.</p>
+      <p>In the previous chapter we devoted relatively a lot of attention to
+      dynamics of impact, characterized for instance by a guard that resets
+      dynamics in a hybrid dynamical system.  In those models we used impulsive
+      ground-reaction forces (these forces are instantaneously infinite, but
+      doing finite work) in order to explain the discontinuous change in
+      velocity required to avoid penetration with the ground.  This story can be
+      extended naturally to the dynamics of the center of mass.<p>
 
-</section>
+      <p>For an articulated robot, though, there are a number of possible
+      strategies for the legs which can effect the dynamics of the center of
+      mass.  For example, if the robot hits the ground with a stiff leg like the
+      rimless wheel, then the angular momentum about the point of collision will
+      be conserved, but any momentum going into the ground will be lost.
+      However, if the robot has a spring leg and a massless toe like the SLIP
+      model, then no energy need be lost.</p>
 
-</section> <!-- end COM dynamics -->
+      <p>One strategy that many highly-articulated legged robots use is to keep
+      their center of mass at a constant height, $$z = c \quad \Rightarrow \quad
+      \dot{z} = \ddot{z} = 0,$$  and minimize their angular momentum about the
+      center of mass (here $\ddot\theta=0$).  Using this strategy, if the
+      swinging foot lands roughly below the center of mass, then even with a
+      stiff leg there is no energy dissipated in the collision - all of the
+      momentum is conserved.  This often (but does not always) justify ignoring
+      the impacts in the center of mass dynamics of the system.</p>
 
-<section data-type="sect1"><h1>The special case of flat terrain</h1>
+    </section>
 
-<p>While not the only important case, it is extremely common for our robots to be walking over flat, or nearly flat terrain.  In this situation, even if the robot is touching the ground in a number of places (e.g., two heels and two toes), the constraints on the center of mass dynamics can be summarized very efficiently.</p>
+  </section> <!-- end COM dynamics -->
 
-<figure>
-  <img width="80%" data-src="figures/flat_terrain.svg"/>
-  <figcaption>External forces acting on a robot pushing on a flat ground</figcaption>
-</figure>
+  <section data-type="sect1"><h1>The special case of flat terrain</h1>
 
-<p>First, on flat terrain $F_{i,z}$ represents the force that is normal to the surface at contact point $i$.  If we assume that the robot can only push on the ground (and not pull), then this implies $$\forall i, F_{i,z} \ge 0 \Rightarrow \sum_i F_{i,z} \ge 0 \Rightarrow \ddot{z} \ge -g.$$  In other words, if I cannot pull on the ground, then my center of mass cannot accelerate towards the ground faster than gravity.</p>
+    <p>While not the only important case, it is extremely common for our robots
+    to be walking over flat, or nearly flat terrain.  In this situation, even if
+    the robot is touching the ground in a number of places (e.g., two heels and
+    two toes), the constraints on the center of mass dynamics can be summarized
+    very efficiently.</p>
 
-<p>Furthermore, if we use a Coulomb model of friction on the ground, with friction coefficient $\mu$, then $$\forall i, |F_{i,x}| \le \mu F_{i,z} \Rightarrow \sum_i |F_{i,x}| \le \mu \sum_i F_z \Rightarrow |\ddot{x}| \le \mu (\ddot{z} + g).$$  For instance, if I keep my center of mass at a constant height, then $\ddot{z}=0$ and $|\ddot{x}| \le \mu g$; this is a nice reminder of just how important friction is if you want to be able to move around in the world.</p>
+    <figure>
+      <img width="80%" data-src="figures/flat_terrain.svg"/>
+      <figcaption>External forces acting on a robot pushing on a flat ground</figcaption>
+    </figure>
 
-<p>Even better, let us define the "center of pressure" (CoP) as the point on the ground where $$x_{cop} = \frac{\sum_i p_{i,x} F_{i,z}}{\sum_i F_{i,z}},$$ and since all $p_{i,z}$ are equal on flat terrain, $z_{cop}$ is just the height of the terrain.  It turns out that
-the center of pressure is a "zero-moment point" (ZMP) -- a property that we will demonstrate below -- and moment-balance equation gives us a very important relationship between the location of the CoP and the dynamics of the CoM: \[ (m\ddot{z} + mg) (x_{cop} - x) = (z_{cop} - z) m\ddot{x} - I\ddot\theta. \]  If we use the strategy proposed above for ignoring collision dynamics, $\ddot{z} = \ddot{\theta} = 0$, then we have $z_{cop} - z$ is a constant height $h$, and the result is the famous "ZMP equations":
-\[ \ddot{x} = -\frac{g}{h} (x_{cop}-x). \]  So the location of the center of pressure completely determines the acceleration of the center of mass, and vice versa!  What's more, this relationship is affine -- a property that we can exploit in a number of ways.  </p>
+    <p>First, on flat terrain $F_{i,z}$ represents the force that is normal to
+    the surface at contact point $i$.  If we assume that the robot can only push
+    on the ground (and not pull), then this implies $$\forall i, F_{i,z} \ge 0
+    \Rightarrow \sum_i F_{i,z} \ge 0 \Rightarrow \ddot{z} \ge -g.$$  In other
+    words, if I cannot pull on the ground, then my center of mass cannot
+    accelerate towards the ground faster than gravity.</p>
 
-<p>
-  As an example, we can easily relate constraints on the CoP to constraints on $\ddot{x}$.
-  It is easy to verify from the definition that the CoP must live inside the <a href="http://en.wikipedia.org/wiki/Convex_hull">convex hull</a> of the ground contact points.  Therefore, if we use the $\ddot{z}=\ddot\theta=0$ strategy, then this directly implies strict bounds on the possible accelerations of the center of mass given the locations of the ground contacts.</p>
+    <p>Furthermore, if we use a Coulomb model of friction on the ground, with
+    friction coefficient $\mu$, then $$\forall i, |F_{i,x}| \le \mu F_{i,z}
+    \Rightarrow \sum_i |F_{i,x}| \le \mu \sum_i F_z \Rightarrow |\ddot{x}| \le
+    \mu (\ddot{z} + g).$$  For instance, if I keep my center of mass at a
+    constant height, then $\ddot{z}=0$ and $|\ddot{x}| \le \mu g$; this is a
+    nice reminder of just how important friction is if you want to be able to
+    move around in the world.</p>
 
-<section data-type="sect2"><h1>An aside: the zero-moment point derivation</h1>
+    <p>Even better, let us define the "center of pressure" (CoP) as the point on
+    the ground where $$x_{cop} = \frac{\sum_i p_{i,x} F_{i,z}}{\sum_i
+    F_{i,z}},$$ and since all $p_{i,z}$ are equal on flat terrain, $z_{cop}$ is
+    just the height of the terrain.  It turns out that the center of pressure is
+    a "zero-moment point" (ZMP) -- a property that we will demonstrate below --
+    and moment-balance equation gives us a very important relationship between
+    the location of the CoP and the dynamics of the CoM: \[ (m\ddot{z} + mg)
+    (x_{cop} - x) = (z_{cop} - z) m\ddot{x} - I\ddot\theta. \]  If we use the
+    strategy proposed above for ignoring collision dynamics, $\ddot{z} =
+    \ddot{\theta} = 0$, then we have $z_{cop} - z$ is a constant height $h$, and
+    the result is the famous "ZMP equations": \[ \ddot{x} = -\frac{g}{h}
+    (x_{cop}-x). \]  So the location of the center of pressure completely
+    determines the acceleration of the center of mass, and vice versa!  What's
+    more, this relationship is affine -- a property that we can exploit in a
+    number of ways.  </p>
 
-<p>The zero-moment point (ZMP) is discussed very frequently in the current literature
-  on legged robots.  It also has an unfortunate tendency to be surrounded by some confusion; a number of people have defined the ZMP is slightly different ways (see e.g. <elib>Goswami99</elib> for a summary).  Therefore, it makes sense to provide a simple derivation here.</p>
+    <p> As an example, we can easily relate constraints on the CoP to
+    constraints on $\ddot{x}$. It is easy to verify from the definition that the
+    CoP must live inside the <a
+    href="http://en.wikipedia.org/wiki/Convex_hull">convex hull</a> of the
+    ground contact points.  Therefore, if we use the $\ddot{z}=\ddot\theta=0$
+    strategy, then this directly implies strict bounds on the possible
+    accelerations of the center of mass given the locations of the ground
+    contacts.</p>
 
-<p>First let us recall that for rigid body systems I can always summarize the
-  contributions from many external forces as a single <i>wrench</i> (force and torque) on the object -- this is simply because the $F_i$ terms enter our equations of motion linearly.  Specifically, given any point in space, $r$, in coordinates relative to $(x,z)$:</p>
-<figure><img width="70%" data-src="figures/zmp_derivation.svg"/></figure>
-<todo>update diagram to have r instead of p</todo>
+    <section data-type="sect2"><h1>An aside: the zero-moment point
+    derivation</h1>
 
-<p>I can re-write the equations of motion as
-\begin{align*}
-m\ddot{x} =& \sum_i F_{i,x} = F_{net,x},\\
-m\ddot{z} =& \sum_i F_{i,z} - mg = F_{net,z} - mg,\\
-I\ddot\theta =& \sum_i \left[ r_i \times F_i \right]_y = ({\bf r} \times {\bf F}_{net})_y + \tau_{net},
-\end{align*}
-where ${\bf F}_{net} = \sum_i {\bf F}_i$ and the value of $\tau_{net}$ depends on the location ${\bf r}$.  For some choices of ${\bf r}$, we can make $\tau_{net}=0$.  Examining
-    \[
-    ({\bf r} \times {\bf F}_{net})_y = r_z F_{net,x} - r_x F_{net,z} = \left[ r_i \times F_i \right]_y, \] we can see that when $F_{net,z} > 0$ there is an entire line of solutions, $r_x = a r_z + b$, including one that will intercept the terrain.  For walking robots, it is this point on the ground from which the external wrench can be described by a single force vector (and no moment) that is the famous "zero-moment point" (ZMP).     Substituting the back in to replace $F_{net}$, we can see that
-    \[ r_x = \frac{r_z m \ddot{x} - I \ddot\theta}{m\ddot{z} + mg}. \]
-    If we assume that $\ddot{z}=\ddot{\theta}=0$ and replace the relative
-coordinates with the global coordinates ${\bf r} = {\bf p} - [x,0,z]^T$, then we arrive at precisely the equation presented above.</p>
+      <p>The zero-moment point (ZMP) is discussed very frequently in the current
+      literature on legged robots.  It also has an unfortunate tendency to be
+      surrounded by some confusion; a number of people have defined the ZMP is
+      slightly different ways (see e.g. <elib>Goswami99</elib> for a summary).
+      Therefore, it makes sense to provide a simple derivation here.</p>
 
-<p>Furthermore, since
-    \[\left[ r_i \times F_i \right]_y = \sum_i \left( r_{i,z} F_{i,x} - r_{i,x} F_{i,z} \right), \] and for <i>flat terrain</i> we have \[ r_z F_{net,x} = \sum_i r_{i,z} F_{i,x}, \] then we can see that this ZMP is exactly the CoP: \[ r_x = \frac{\sum_i r_{i,x} F_{i,z}}{ F_{net,z} }. \]
-    </p>
+      <p>First let us recall that for rigid body systems I can always summarize
+      the contributions from many external forces as a single <i>wrench</i>
+      (force and torque) on the object -- this is simply because the $F_i$ terms
+      enter our equations of motion linearly.  Specifically, given any point in
+      space, $r$, in coordinates relative to $(x,z)$:</p> <figure><img
+      width="70%" data-src="figures/zmp_derivation.svg"/></figure> <todo>update
+      diagram to have r instead of p</todo>
 
-    <p>In three dimensions, we solve for the point on the ground where $\tau_{net,y} = \tau_{net,x} = 0$, but allow $\tau_{net,z} \ne 0$ to extract the analogous equations in the $y$-axis:  \[ r_y = \frac{r_z m \ddot{y} - I \ddot\theta}{m\ddot{z} + mg}. \] </p>
+      <p>I can re-write the equations of motion as \begin{align*} m\ddot{x} =&
+      \sum_i F_{i,x} = F_{net,x},\\ m\ddot{z} =& \sum_i F_{i,z} - mg = F_{net,z}
+      - mg,\\ I\ddot\theta =& \sum_i \left[ r_i \times F_i \right]_y = ({\bf r}
+      \times {\bf F}_{net})_y + \tau_{net}, \end{align*} where ${\bf F}_{net} =
+      \sum_i {\bf F}_i$ and the value of $\tau_{net}$ depends on the location
+      ${\bf r}$.  For some choices of ${\bf r}$, we can make $\tau_{net}=0$.
+      Examining \[ ({\bf r} \times {\bf F}_{net})_y = r_z F_{net,x} - r_x
+      F_{net,z} = \left[ r_i \times F_i \right]_y, \] we can see that when
+      $F_{net,z} > 0$ there is an entire line of solutions, $r_x = a r_z + b$,
+      including one that will intercept the terrain.  For walking robots, it is
+      this point on the ground from which the external wrench can be described
+      by a single force vector (and no moment) that is the famous "zero-moment
+      point" (ZMP).     Substituting the back in to replace $F_{net}$, we can
+      see that \[ r_x = \frac{r_z m \ddot{x} - I \ddot\theta}{m\ddot{z} + mg}.
+      \] If we assume that $\ddot{z}=\ddot{\theta}=0$ and replace the relative
+      coordinates with the global coordinates ${\bf r} = {\bf p} - [x,0,z]^T$,
+      then we arrive at precisely the equation presented above.</p>
 
+      <p>Furthermore, since \[\left[ r_i \times F_i \right]_y = \sum_i \left(
+      r_{i,z} F_{i,x} - r_{i,x} F_{i,z} \right), \] and for <i>flat terrain</i>
+      we have \[ r_z F_{net,x} = \sum_i r_{i,z} F_{i,x}, \] then we can see that
+      this ZMP is exactly the CoP: \[ r_x = \frac{\sum_i r_{i,x} F_{i,z}}{
+      F_{net,z} }. \] </p>
+
+      <p>In three dimensions, we solve for the point on the ground where
+      $\tau_{net,y} = \tau_{net,x} = 0$, but allow $\tau_{net,z} \ne 0$ to
+      extract the analogous equations in the $y$-axis:  \[ r_y = \frac{r_z m
+      \ddot{y} - I \ddot\theta}{m\ddot{z} + mg}. \] </p>
+
+    </section>
   </section>
-</section>
 
   <section data-type="sect1"><h1>ZMP planning</h1>
 
     <figure><img width="80%" data-src="figures/zmp_planning.svg"/></figure>
 
-    <section data-type="sect2"><h1>From a CoM plan to a whole-body plan</h1></section>
+    <section data-type="sect2"><h1>From a CoM plan to a whole-body
+    plan</h1></section>
+
   </section>
 
 
   <section data-type="sect1"><h1>Whole-Body Control</h1>
 
-    <p>Coming soon.  For a description of our approach with Atlas, see <elib>Kuindersma13+Kuindersma14</elib>.</p>
+    <p>Coming soon.  For a description of our approach with Atlas, see
+    <elib>Kuindersma13+Kuindersma14</elib>.</p>
 
   </section>
 
   <section data-type="sect1"><h1>Footstep planning and push recovery</h1>
 
-    <p>Coming soon.  For a description of our approach with Atlas, see <elib>Deits14a+Kuindersma14</elib>.  For nice geometric insights on push recovery, see <elib>Koolen12</elib>.</p>
+    <p>Coming soon.  For a description of our approach with Atlas, see
+    <elib>Deits14a+Kuindersma14</elib>.  For nice geometric insights on push
+    recovery, see <elib>Koolen12</elib>.</p>
 
   </section>
 
   <section data-type="sect1"><h1>Beyond ZMP planning</h1>
 
-    <p>Coming soon.  For a description of our approach with Atlas, see <elib>Dai14+Kuindersma14</elib>.</p>
+    <p>Coming soon.  For a description of our approach with Atlas, see
+    <elib>Dai14+Kuindersma14</elib>.</p>
 
   </section>
-
 
 </section> <!-- ** end highly-articulated legged robots ** -->
 
@@ -5871,221 +6005,228 @@ where this additional input $\bw$ is the (vector) output of some random process.
 <section data-type="chapter" class="chapter" id="limit_cycles"><h1>Algorithms
 for Limit Cycles</h1>
 
-<p>The discussion of walking and running robots in Chapter 4 motivated the notion of
-limit cycle stability.  Linear systems are not capable of producing stable limit cycle
-behavior, so this rich topic is unique to nonlinear systems design and analysis.  Furthermore,
-the
-tools that are required to design, stabilize, and verify limit cycles will have
-applicability beyond simple periodic motions.</p>
+  <p>The discussion of walking and running robots in Chapter 4 motivated the
+  notion of limit cycle stability.  Linear systems are not capable of producing
+  stable limit cycle behavior, so this rich topic is unique to nonlinear systems
+  design and analysis.  Furthermore, the tools that are required to design,
+  stabilize, and verify limit cycles will have applicability beyond simple
+  periodic motions.</p>
 
-<p>The first natural question we must ask is, given a system $\dot{\bx} = f(\bx)$, or a control
-  system $\dot{x} = f(\bx,\bu)$, how do we go about finding periodic solutions
-  which may be passively stable, open-loop stable, or stabilized with closed-loop feedback?
-  It turns out that the trajectory optimization tools that we developed in the
-  last chapter are very well suited to this task.</p>
+  <p>The first natural question we must ask is, given a system $\dot{\bx} =
+  f(\bx)$, or a control system $\dot{x} = f(\bx,\bu)$, how do we go about
+  finding periodic solutions which may be passively stable, open-loop stable, or
+  stabilized with closed-loop feedback? It turns out that the trajectory
+  optimization tools that we developed in the last chapter are very well suited
+  to this task.</p>
 
+  <section data-type="sect1"><h1>Trajectory optimization</h1>
 
-<section data-type="sect1"><h1>Trajectory optimization</h1>
+    <p>I introduced the trajectory optimization tools as means for optimizing a
+    single trajectory of the system from a particular known initial condition.
+    But they can be used in a slightly different way, too -- in some
+    formulations we might choose to have the initial conditions as one of the
+    decision variables.  In fact, the simplest formulation for finding a
+    periodic solution is to leave the entire trajectory as a decision variable,
+    but to add <em>periodicity constraints</em> enforcing that the initial
+    conditions and the final conditions match.  Some care is needed here; if
+    you're not careful then these constraints will all be met if the entire
+    trajectory remains at a fixed point in the system.  In the example below, we
+    constrain that the initial and final conditions lie on the surface of
+    section that we used before, and additionally constrain that the velocity at
+    the initial/final points is non-zero (to avoid the fixed point
+    solution).</p>
 
-<p>I introduced the trajectory optimization tools as means for optimizing a single
-  trajectory of the system from a particular known initial condition.  But they
-  can be used in a slightly different way, too -- in some formulations we might
-  choose to have the initial conditions as one of the decision variables.  In
-  fact, the simplest formulation for finding a periodic solution is to leave
-  the entire trajectory as a decision variable, but to add <em>periodicity constraints</em>
-  enforcing that the initial conditions and the final conditions match.  Some
-  care is needed here; if you're not careful then these constraints will all
-  be met if the entire trajectory remains at a fixed point in the system.  In
-  the example below, we constrain that the initial and final conditions lie on
-  the surface of section that we used before, and additionally constrain that
-  the velocity at the initial/final points is non-zero (to avoid the fixed point solution).</p>
+    <p>Note that although we introduced trajectory optimization as searching
+    over control inputs $\bu$, this formulation is now rich enough that it
+    solves an important problem even for passive systems -- with no control
+    input at all.</p>
 
-<p>Note that although we introduced trajectory optimization as searching over control
-  inputs $\bu$, this formulation is now rich enough that it solves an important
-  problem even for passive systems -- with no control input at all.</p>
+    <div data-type="example" class="drake"><h1>Finding the limit cycle of the
+    Van der Pol oscillator</h1>
 
-<div data-type="example" class="drake"><h1>Finding the limit cycle of the Van der Pol oscillator</h1>
+      <p>Recall the dynamics of the Van der Pol oscillator given by $$\ddot{q} +
+      \mu (q^2 - 1) \dot{q} + q = 0, \quad \mu>0,$$ which exhibited a stable
+      limit cycle.</p>
 
-<p>Recall the dynamics of the Van der Pol oscillator given by
-  $$\ddot{q} + \mu (q^2 - 1) \dot{q} + q = 0, \quad \mu>0,$$
-  which exhibited a stable limit cycle.</p>
+      <p>Formulate the direct collocation optimization:
+        \begin{align*}
+          \find_{\bx_0,...,\bx_N,dt} \quad \\
+          \subjto \quad    & q_0 = 0, \quad \dot{q}_0 > 0, \\
+          & \bx_N = \bx_0, \text{(periodicity constraint)}\\
+          & \text{collocation dynamic constraints}
+        \end{align*}
+      </p>
 
-<p>Formulate the direct collocation optimization:
-  \begin{align*}
-    \find_{\bx_0,...,\bx_N,dt} \quad \\
-    \subjto \quad    & q_0 = 0, \quad q_N = 0, \\
-    & \dot{q}_0 = \dot{q}_N, \quad \dot{q}_0 > 0, \\
-    & \text{collocation dynamic constraints}
-  \end{align*}
-</p>
+      <p>Try it yourself:</p>
+        <pysrc>van_der_pol/dircol.py</pysrc>
 
-<p>Try it yourself: <pre><code class="matlab" testfile="testVanDerPolDircol">
-cd(fullfile(getDrakePath,'examples'));
-VanDerPol.runDircol();
-</code></pre>
+      <p>As always, make sure that you take a look at the code.  Poke around.
+      Try changing some things.</p>
 
-<p><a href="figures/vanDerPolDircol.swf">Click here to see an animation of the
-result.</a>  The red dots are the initial and final conditions (which appear as
-one dot once the constraints are satisfied).  As always, make sure that you take
-a look at the code.  Poke around.  Try changing some things.</p>
+      <p>One of the things that you should notice in the code is that I provide
+      an initial guess for the solver.  In most of the examples so far I've been
+      able to avoid doing that--the solver takes small random numbers as a
+      default initial guess and solves from there.  But for this problem, I
+      found that it was getting stuck in a local minima.  Adding the initial
+      guess that the solution moves around a circle in state space was enough.
+      </p>
 
-<p>One of the things that you should notice in the code is that I provide an initial
-  guess for the solver.  In most of the examples so far I've been able to avoid
-  doing that--the solver takes small random numbers as a default initial guess and
-  solves from there.  But for this problem, I found that it was getting stuck in a
-  local minima.  Adding the initial guess that the solution moves around a circle in
-  state space was enough.
-</p>
+    </div>
 
-</div>
+    <todo> example: simplest flapping robot </todo>
 
-<todo> example: simplest flapping robot </todo>
+  </section> <!-- end trajectory optimization -->
 
-</section> <!-- end trajectory optimization -->
+  <section data-type="sect1"><h1>Lyapunov analysis</h1>
 
-<section data-type="sect1"><h1>Lyapunov analysis</h1>
+    <p>Recall the important distinction between stability of a trajectory in
+    time and   stability of a limit cycle was that the limit cycle does not
+    converge in phase --   trajectories near the cycle converge to the cycle,
+    but trajectories on the cycle   may not converge with each other.  This is
+    type of stability, also known as <em>orbital   stability</em> can be written
+    as stability to the manifold described by cycle   $\bx^*(t)$, \[ \min_\tau
+    || x(t) - x^*(\tau) || \rightarrow 0.\] In the case of limit cycles, this
+    manifold is a periodic solution with $\bx^*(t+t_{period}) = \bx^*(t)$.
+    Depending on exactly how that convergence happens, we can define orbital
+    stability in the sense of Lyapunov, asymptotic orbital stability,
+    exponential orbital stability, or even finite-time orbital stability.</p>
 
-<p>Recall the important distinction between stability of a trajectory in time
-and   stability of a limit cycle was that the limit cycle does not converge in
-phase --   trajectories near the cycle converge to the cycle, but trajectories
-on the cycle   may not converge with each other.  This is type of stability,
-also known as <em>orbital   stability</em> can be written as stability to the
-manifold described by cycle   $\bx^*(t)$, \[ \min_\tau || x(t) - x^*(\tau) ||
-\rightarrow 0.\] In the case of limit cycles, this manifold is a periodic
-solution with $\bx^*(t+t_{period}) = \bx^*(t)$.   Depending on exactly how that
-convergence happens, we can define orbital stability in the sense of Lyapunov,
-asymptotic orbital stability, exponential orbital stability, or even
-finite-time orbital stability.</p>
+    <p>In order to prove that a system is orbitally stable (locally, over a
+    region, or globally), or to analyze the region of attraction of a limit
+    cycle, we can use a Lyapunov function. In particular, we would like to
+    consider Lyapunov functions which have the form cartooned below;  they
+    vanish to zero everywhere along the cycle, and are strictly positive
+    everywhere away from the cycle.</p>
 
-<p>In order to prove that a system is orbitally stable (locally, over a region, or globally),
-or to analyze the region of attraction of a limit cycle, we can use a Lyapunov function.
-In particular, we would like to consider Lyapunov functions which have the
-form cartooned below;  they vanish to zero everywhere along the cycle, and are
-strictly positive everywhere away from the cycle.</p>
+    <figure><img
+    data-src="figures/limitCycleLyapunovCartoon.svg"/><figcaption>Cartoon of a
+    Lyapunov function which vanishes on a limit cycle, and is strictly positive
+    everywhere else. (a small segment has been removed solely for the purposes
+    of visualization).</figcaption></figure>
 
-<figure><img data-src="figures/limitCycleLyapunovCartoon.svg"/><figcaption>Cartoon of a Lyapunov
-function which vanishes on a limit cycle, and is strictly positive everywhere else.
-(a small segment has been removed solely for the purposes of visualization).</figcaption></figure>
+    <section data-type="sect2"><h1>Transverse coordinates</h1>
 
-<section data-type="sect2"><h1>Transverse coordinates</h1>
+      <p>How can we parameterize this class of functions?  For arbitrary cycles
+      this could be very difficult in the original coordinates.  For simple
+      cycles like in the cartoon, one could imagine using polar coordinates.
+      More generally, we will define a new coordinate system relative to the
+      orbit, with coordinates</p> <ul> <li>$\tau$ - the phase along the
+      orbit</li> <li>$\bx_\perp(\tau)$ - the remaining coordinates, linearly
+      independent from $\tau$.</li> </ul> <p>Given a state $\bx$ in the original
+      coordinates, we must define a smooth mapping $\bx \rightarrow (\tau,
+      \bx_\perp)$ to this new coordinate system.  For example, for a simple ring
+      oscillator we might have:</p> <figure><img width="80%"
+      data-src="figures/transverseCoordinates.svg"/><figcaption>A moving
+      coordinate system along the limit cycle.</figcaption></figure> In general,
+      for an $n$-dimensional state space, $\tau$ will always be a scalar, and
+      $\bx_\perp$ will be an $(n-1)$-dimensional vector defining the remaining
+      coordinates relative to $\bx^*(\tau)$. In fact, although we use the
+      notation $\bx_\perp$ the coordinate system need not be strictly orthogonal
+      to the orbit, but must simply be <em>transversal</em> (not parallel).
+      Having defined the smooth mapping $\bx \rightarrow (\tau,\bx_\perp)$, we
+      can always rewrite the dynamics in this new coordinate system:
+      \begin{gather*} \dot{\tau} = f_1(\bx_\perp,\tau) \\ \dot\bx_\perp =
+      f_2(\bx_\perp,\tau). \end{gather*} <p>The value of this construction for
+      Lyapunov analysis was proposed in <elib>Hauser94a</elib> and has been
+      extended nicely to control design in <elib>Shiriaev08</elib> and for
+      region of attraction estimation in <elib>Manchester10b</elib>.  A
+      particular numerical strategy for defining the transversal coordinates is
+      given in <elib>Manchester10a</elib>.</p>
 
-<p>How can we parameterize this class of functions?  For arbitrary cycles this could be
-very difficult in the original coordinates.  For simple cycles like in the cartoon,
-one could imagine using polar coordinates.  More generally, we will define a new
-coordinate system relative to the orbit, with coordinates</p>
-<ul>
-  <li>$\tau$ - the phase along the orbit</li>
-  <li>$\bx_\perp(\tau)$ - the remaining coordinates, linearly independent from $\tau$.</li>
-</ul>
-<p>Given a state $\bx$ in the original coordinates, we must define a smooth mapping $\bx \rightarrow (\tau, \bx_\perp)$
-to this new coordinate system.  For example, for a simple ring oscillator we might have:</p>
-<figure><img width="80%" data-src="figures/transverseCoordinates.svg"/><figcaption>A moving coordinate system
-  along the limit cycle.</figcaption></figure>
-In general, for an $n$-dimensional state space, $\tau$ will always be a scalar, and $\bx_\perp$ will
-be an $(n-1)$-dimensional vector defining the remaining coordinates relative to $\bx^*(\tau)$.
-In fact,
-although we use the notation $\bx_\perp$ the coordinate system need not be strictly orthogonal
-to the orbit, but must simply be <em>transversal</em> (not parallel). Having defined the smooth mapping $\bx \rightarrow (\tau,\bx_\perp)$, we can
-  always rewrite the dynamics in this new coordinate system:
-  \begin{gather*}
-  \dot{\tau} = f_1(\bx_\perp,\tau) \\
-  \dot\bx_\perp = f_2(\bx_\perp,\tau).
-  \end{gather*}
-<p>The value of this construction for Lyapunov analysis was proposed in <elib>Hauser94a</elib> and
-has been extended nicely to control design in <elib>Shiriaev08</elib> and for region of attraction
-estimation in <elib>Manchester10b</elib>.  A particular numerical strategy for defining the
-transversal coordinates is given in <elib>Manchester10a</elib>.</p>
+      <div data-type="theorem"><h1>A Lyapunov theorem for orbital stability</h1>
 
+        <p>For a dynamical system $\dot\bx = f(\bx)$ with $\bx \in \Re^n$, $f$
+        continuous, a continuous periodic solution $\bx^*(\tau)$, and a smooth
+        mapping $\bx \rightarrow (\tau,\bx_\perp)$ where $\bx_\perp$ vanishes on
+        $\bx^*$, then for some $n-1$ dimensional ball ${\cal B}$ around the
+        origin, if I can produce a $V(\bx_\perp,\tau)$ such that \begin{gather*}
+        \forall \tau, V(0,\tau) = 0, \\ \forall \tau, \forall \bx_\perp \in
+        {\cal B}, \bx_\perp \ne 0, V(\bx_\perp,\tau) > 0, \end{gather*} with
+        \begin{gather*} \forall \tau, \dot{V}(0,\tau) = 0, \\ \forall \tau,
+        \forall \bx_\perp \in {\cal B}, \bx_\perp \ne 0, \dot{V}(\bx_\perp,\tau)
+        < 0, \end{gather*} then the solution $\bx^*(t)$ is <em>locally orbitally
+        asymptotically stable</em>.</p>
 
-<div data-type="theorem"><h1>A Lyapunov theorem for orbital stability</h1>
+      </div>
 
-<p>For a dynamical system $\dot\bx = f(\bx)$ with $\bx \in \Re^n$, $f$ continuous, a continuous periodic solution
-  $\bx^*(\tau)$, and a smooth mapping $\bx \rightarrow (\tau,\bx_\perp)$ where $\bx_\perp$ vanishes
-  on $\bx^*$, then for some $n-1$ dimensional ball ${\cal B}$ around the origin,
-  if I can produce
-  a $V(\bx_\perp,\tau)$ such that
-  \begin{gather*}
-    \forall \tau, V(0,\tau) = 0, \\
-    \forall \tau, \forall \bx_\perp \in {\cal B}, \bx_\perp \ne 0, V(\bx_\perp,\tau) > 0,
-  \end{gather*}
-  with
-  \begin{gather*}
-    \forall \tau, \dot{V}(0,\tau) = 0, \\
-    \forall \tau, \forall \bx_\perp \in {\cal B}, \bx_\perp \ne 0, \dot{V}(\bx_\perp,\tau) < 0,
-  \end{gather*}
-  then the solution $\bx^*(t)$ is <em>locally orbitally asymptotically stable</em>.</p>
-</div>
+      <div data-type="example"><h1>Simple ring oscillator</h1>
 
-<div data-type="example"><h1>Simple ring oscillator</h1> <p> Perhaps the
-simplest oscillator is the first-order system which converges to the unit
-circle.   In cartesian coordinates, the dynamics are   \begin{align*}
-\dot{x}_1 =& x_2 -\alpha x_1 \left( 1 - \frac{1}{\sqrt{x_1^2+x_2^2}}\right) \\
-\dot{x}_2 =& -x_1 -\alpha x_2 \left( 1 - \frac{1}{\sqrt{x_1^2+x_2^2}}\right),
-\end{align*}   where $\alpha$ is a positive scalar gain.</p>
+        <p> Perhaps the simplest oscillator is the first-order system which
+        converges to the unit circle.   In cartesian coordinates, the dynamics
+        are   \begin{align*} \dot{x}_1 =& x_2 -\alpha x_1 \left( 1 -
+        \frac{1}{\sqrt{x_1^2+x_2^2}}\right) \\ \dot{x}_2 =& -x_1 -\alpha x_2
+        \left( 1 - \frac{1}{\sqrt{x_1^2+x_2^2}}\right), \end{align*}   where
+        $\alpha$ is a positive scalar gain.</p>
 
-<figure><img width=80% data-src="figures/ringOscillator.svg"/><figcaption>Vector field of the ring oscillator</figcaption></figure>
+        <figure><img width=80%
+        data-src="figures/ringOscillator.svg"/><figcaption>Vector field of the
+        ring oscillator</figcaption></figure>
 
-<p>If we take the
-transverse coordinates to be the polar coordinates,   shifted so that $x_\perp$
-is zero on the unit circle, \begin{align*}\tau =& \text{atan2}(-x_2,x_1) \\
-x_\perp =& \sqrt{x_1^2+x_2^2}-1, \end{align*} which is valid when $x_\perp>-1$, then the simple transverse
-dynamics are revealed:   \begin{align*}     \dot\tau =& 1 \\     \dot{x}_\perp =&
--\alpha x_\perp.   \end{align*}   Taking a Lyapunov candidate $V(x_\perp,\tau) =
-x_\perp^2$, we can verify that $$\dot{V} = -2 \alpha x_\perp^2 \prec 0, \quad \forall x_\perp > -1.$$
-This demonstrates that the limit cycle is locally asymptotically stable, and furthermore that the invariant open-set $V < 1$ is inside the region of attraction
-of that limit cycle. In fact, we know that all $x_\perp > -1$ are in the region of attraction
-that limit cycle, but this is not proven by the Lyapunov argument above.
-</p>
+        <p>If we take the transverse coordinates to be the polar coordinates,
+        shifted so that $x_\perp$ is zero on the unit circle, \begin{align*}\tau
+        =& \text{atan2}(-x_2,x_1) \\ x_\perp =& \sqrt{x_1^2+x_2^2}-1,
+        \end{align*} which is valid when $x_\perp>-1$, then the simple
+        transverse dynamics are revealed:   \begin{align*}     \dot\tau =& 1 \\
+        \dot{x}_\perp =& -\alpha x_\perp.   \end{align*}   Taking a Lyapunov
+        candidate $V(x_\perp,\tau) = x_\perp^2$, we can verify that $$\dot{V} =
+        -2 \alpha x_\perp^2 \prec 0, \quad \forall x_\perp > -1.$$ This
+        demonstrates that the limit cycle is locally asymptotically stable, and
+        furthermore that the invariant open-set $V < 1$ is inside the region of
+        attraction of that limit cycle. In fact, we know that all $x_\perp > -1$
+        are in the region of attraction that limit cycle, but this is not proven
+        by the Lyapunov argument above. </p>
 
-</div>
+      </div>
 
-<p>Let's compare this approach with the approach that we used in the chapter on walking
-  robots, where we used a Poincar&eacute map analysis to investigate limit cycle stability.
-In transverse coordinates approach, there is an additional burden to construct the coordinate system
-along the entire trajectory, instead of only at a single surface of section.  In fact,
-the transverse coordinates approach is sometimes referred to as a "moving Poincar&eacute section".
-But the reward for this extra work is that we can check a condition that only involves
-the instantaneous dynamics, $f(\bx)$, as opposed to having to integrate the dynamics
-over an entire cycle to generate the discrete Poincar&eacute map, $\bx_p[n+1] = P(\bx_p[n])$.
-While computing $P$ in closed-form happened to be possible for the simple rimless wheel
-model, it is rarely possible for more complex models.  As we will see below,
-this approach will also be more compatible with designing continuous feedback controller that
-stabilize the limit cycle.</p>
+      <p>Let's compare this approach with the approach that we used in the
+      chapter on walking robots, where we used a Poincar&eacute map analysis to
+      investigate limit cycle stability. In transverse coordinates approach,
+      there is an additional burden to construct the coordinate system along the
+      entire trajectory, instead of only at a single surface of section.  In
+      fact, the transverse coordinates approach is sometimes referred to as a
+      "moving Poincar&eacute section". But the reward for this extra work is
+      that we can check a condition that only involves the instantaneous
+      dynamics, $f(\bx)$, as opposed to having to integrate the dynamics over an
+      entire cycle to generate the discrete Poincar&eacute map, $\bx_p[n+1] =
+      P(\bx_p[n])$. While computing $P$ in closed-form happened to be possible
+      for the simple rimless wheel model, it is rarely possible for more complex
+      models.  As we will see below, this approach will also be more compatible
+      with designing continuous feedback controller that stabilize the limit
+      cycle.</p>
 
-</section> <!-- end transverse -->
+    </section> <!-- end transverse -->
 
-<section data-type="sect2"><h1>Transverse linearization</h1>
+    <section data-type="sect2"><h1>Transverse linearization</h1>
 
-<p>In the case of Lyapunov analysis around a fixed point, there was an important
-  special case: for stable linear systems, we actually have a recipe for constructing a Lyapunov
-  function.  As a result, for nonlinear systems, we often found it convenient to begin our
-  search by linearizing around the fixed point and using the Lyapunov candidate for
-  the linear system as an initial guess.  That same approach can be extended to limit cycle
-  analysis.</p>
+      <p>In the case of Lyapunov analysis around a fixed point, there was an
+      important special case: for stable linear systems, we actually have a
+      recipe for constructing a Lyapunov function.  As a result, for nonlinear
+      systems, we often found it convenient to begin our search by linearizing
+      around the fixed point and using the Lyapunov candidate for the linear
+      system as an initial guess.  That same approach can be extended to limit
+      cycle analysis.</p>
 
-</section>
+    </section>
 
-<section data-type="sect2"><h1>Region of attraction estimation using sums-of-squares</h1>
+    <section data-type="sect2"><h1>Region of attraction estimation using sums-of-squares</h1>
 
-Coming soon.  If you are interested, see <elib>Manchester10a+Manchester10b</elib>.
+      <p>Coming soon.  If you are interested, see <elib>Manchester10a+Manchester10b</elib>.</p>
 
-</section>
+    </section>
 
-</section> <!-- end lyapunov -->
+  </section> <!-- end lyapunov -->
 
-<section data-type="sect1"><h1>Feedback design</h1>
+  <section data-type="sect1"><h1>Feedback design</h1>
 
-<section data-type="sect2"><h1>Transverse LQR</h1>
+    <section data-type="sect2"><h1>Transverse LQR</h1>
 
-</section>
+    </section>
 
-<section data-type="sect2"><h1>Orbital stabilization for non-periodic trajectories</h1>
+    <section data-type="sect2"><h1>Orbital stabilization for non-periodic trajectories</h1>
 
-</section>
+    </section>
 
-</section> <!-- end feedback -->
-
-
+  </section> <!-- end feedback -->
 
 </section> <!-- end limit cycles -->
 
