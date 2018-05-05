@@ -94,8 +94,20 @@ In these dynamics, we are assuming a simplified cube of unit size. These dynamic
 \section{Optimization Formulation}
 In this section, we explain the necessary nonlinear program formulation to solve for a cube trajectory through space. We'll start by explaining this in the context of a simple swing up of the cube.
 
-\subsection{The Simple Swing Up}
-Explain the problem formulation of the swing up.
+\subsection{The Simple Swing-Up}
+The swing-up is performed by getting the cube to stand on exactly one corner in a stable position. By using the contact-implicit trajectory optimization, this is possible. The computed trajectory values are showing in Fig. \ref{fig:swing_states}, \ref{fig:swing_input}, and \ref{fig:swing_ground}.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=10cm,keepaspectratio]{media/swing_up/swing_up_states.png}}
+\caption{Swing up trajectory states.}
+\label{fig:swing_states}
+\centerline{\includegraphics[width=8cm,keepaspectratio]{media/swing_up/swing_up_torque.png}}
+\caption{Swing up trajectory torque input.}
+\label{fig:swing_input}
+\centerline{\includegraphics[width=8cm,keepaspectratio]{media/swing_up/swing_up_ground_forces.png}}
+\caption{Swing up trajectory ground forces.}
+\label{fig:swing_ground}
+\end{figure}
 
 Explain that LQR could be used to control after achieving swing up.
 
@@ -122,6 +134,8 @@ Intelligent Robots and Systems, 2012 \url{https://www.ethz.ch/content/dam/ethz/s
 \url{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.824.7275&rep=rep1&type=pdf}
 \bibitem{b4} E. Bjerke, B. Pehrsson. ``Development of a Nonlinear Mechatronic Cube,'' Chalmers University of Technology, 2016
 \url{http://publications.lib.chalmers.se/records/fulltext/233543/233543.pdf}
+\bibitem{b5} Y. Dauphin, R. Pascanu, C. Gulcehre, K. Cho, S. Ganguli, and Y. Bengio. ``Identifying and attacking the saddle point problem in high-dimensional non-convex optimization,'' in Proceedings of the 27th International Conference on Neural Information Processing Systems - Volume 2, 2014
+\url{https://ganguli-gang.stanford.edu/pdf/14.SaddlePoint.NIPS.pdf}
 \end{thebibliography}
 \vspace{12pt}
 

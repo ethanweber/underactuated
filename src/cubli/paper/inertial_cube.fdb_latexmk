@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1525545871 "inertial_cube.tex" "inertial_cube.pdf" "inertial_cube" 1525545871
+["pdflatex"] 1525559805 "inertial_cube.tex" "inertial_cube.pdf" "inertial_cube" 1525559806
   "/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/base/8r.enc" 1480098666 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2017/texmf-dist/fonts/map/fontname/texfonts.map" 1480098670 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1480098689 2172 fd0c924230362ff848a33632ed45dc23 ""
@@ -108,12 +108,15 @@
   "/usr/local/texlive/2017/texmf-var/fonts/map/pdftex/updmap/pdftex.map" 1495593472 2350277 a699055bee05bf8a40b0504752487295 ""
   "/usr/local/texlive/2017/texmf-var/web2c/pdftex/pdflatex.fmt" 1495593487 4129592 0e6cfee100d68e6d96b92c0258f2ff73 ""
   "/usr/local/texlive/2017/texmf.cnf" 1495593465 577 2b71d4d888f9e5560b2e99985915a9fa ""
-  "inertial_cube.aux" 1525545871 2094 163e4ed82f1737fa70d07d063d265f59 ""
-  "inertial_cube.out" 1525545871 509 ac8b7ddf8075c2a96a7f151846f7d691 ""
-  "inertial_cube.tex" 1525545870 5421 f89946f97ecd7742b94397a866b23905 ""
-  "media/cube_states.png" 1525540792 51502 6a4a0045329845e51b6df55154615881 ""
+  "inertial_cube.aux" 1525559806 2705 69c83ee27bcce6dd4f7886f6c5983d5e ""
+  "inertial_cube.out" 1525559806 509 c204ab087fbaf7a3cf871373d22abd2c ""
+  "inertial_cube.tex" 1525559802 6556 e8be47d9591a8b1c6c9e44d2c15dee2c ""
+  "media/cube_states.png" 1525558039 51463 3ff7825b4fef7bb75b04c306ab5abd6f ""
+  "media/swing_up/swing_up_ground_forces.png" 1525558546 21320 16697a4db144fb598147234abaf2963b ""
+  "media/swing_up/swing_up_states.png" 1525558607 26738 c130292b6e4b57fc030796a6892af487 ""
+  "media/swing_up/swing_up_torque.png" 1525558582 13179 d41d942f0ab0d1d2e33bcd2297520890 ""
   (generated)
-  "inertial_cube.aux"
+  "inertial_cube.log"
   "inertial_cube.out"
   "inertial_cube.pdf"
-  "inertial_cube.log"
+  "inertial_cube.aux"

@@ -75,7 +75,7 @@ def get_nd_dynamics(state, u, force, dim=2):
     derivs[0+hl] = (force[1] - force[2] + force[6] - force[5])*cos(theta) - (force[0] + force[3] - force[4] - force[7])*sin(theta) # forces along x
     derivs[1+hl] = (force[1] - force[2] + force[6] - force[5])*sin(theta) + (force[0] + force[3] - force[4] - force[7])*cos(theta) - g  # forces in y direction
 
-    # cube acceleration
+    # cube angle acceleration
     derivs[dim + hl] = (-u[0] + F_w*alpha_dot - F_c*theta_dot)/I_c + (-force[0]+force[1]-force[2]+force[3]-force[4]+force[5]-force[6]+force[7])*.5
 
     # wheel acceleration
@@ -293,7 +293,10 @@ def compute_optimal_control(initial_state, final_state, min_time, max_time, max_
         mp.AddConstraint(u_over_time[n,0] >= -max_torque)
 
     # try to keep the velocity of the wheel in the correct direction
-    mp.AddLinearCost(x_over_time[:,-1].sum())
+    # mp.AddLinearCost(x_over_time[:,-1].sum())
+
+    mp.SetInitialGuess(u_over_time[0,0], -3.0)
+    mp.SetInitialGuess(u_over_time[0,1] == 0.0)
 
     print "Number of decision vars", mp.num_vars()
     print(mp.Solve())
@@ -305,9 +308,6 @@ def compute_optimal_control(initial_state, final_state, min_time, max_time, max_
     time_array = np.arange(0.0, t, t/(N+1))
 
     return trajectory, input_trajectory, force_trajectory, time_array
-
-# class MatplotlibCubeVisualizer:
-#     def __init__(self):
 
 class MeshcatCubeVisualizer:
     def __init__(self):
@@ -340,7 +340,7 @@ class MeshcatCubeVisualizer:
         temp = tf.rotation_matrix(theta,[1,0,0]) # assume rotate about y
         temp[0:3, -1] = tf.translation_from_matrix(tf.translation_matrix(origin))
         self.cube.set_transform(temp)
-        self.wheel.set_transform(tf.rotation_matrix(-wheel_angle,[1,0,0])) # rotate the pole
+        self.wheel.set_transform(tf.rotation_matrix(wheel_angle,[1,0,0])) # rotate the pole
 
     def initialize(self):
         # set the initial state in 2d
