@@ -1,0 +1,97 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+\hypersetup{
+  colorlinks, linkcolor=red
+}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Trajectory Optimization for an Inertial Cube \\
+}
+
+\author{\IEEEauthorblockN{Ethan Weber}
+\IEEEauthorblockA{\textit{6.832 (Underactuated Robotics) Final Project} \\
+\textit{Massachusetts Institute of Technology}\\
+Cambridge, MA \\
+ejweber@mit.edu}
+}
+
+\maketitle
+
+\begin{abstract}
+Inertially-actuated robots pose a very interesting problem for underactuated control. Here we present a trajectory opimization method to control a 2d cube with a fully-controllable flywheel mounted inside. Inspired by earlier work done by with the Cubli and M-Blocks, we use contact-implicit trajectory optimization to generate more complex behavior of the inerial cube. We use one actuator (the flywheel) to control the 8 states of the robot over time. Using Sparse Nonlinear OPTimizer (SNOPT) in Drake, the interial cube can be descriped as a floating body with contact implicit movements via linear complementarity contraints. This leads to elegant optimal trajectory control for the interial cube.
+\end{abstract}
+
+\begin{IEEEkeywords}
+trajectory optimization, underactuated, inertia
+\end{IEEEkeywords}
+
+\section{Introduction}
+This document is a model and instructions for \LaTeX.
+Please observe the conference page limits.
+
+\section{Defining the Model}
+
+\subsection{State Space Explanation}
+
+Here is a diagram depicting the states of the cube. The cube is defined in free space, meaning there is no notion of the ground in the state description. Here is an image describing the cube states.
+
+\begin{figure}[htbp]
+\centerline{\includegraphics[width=8cm,keepaspectratio]{media/cube_states.png}}
+\caption{The states of the floating inertial cube. The derivates of these states are also included in the total state vector $\textbf{x}$ but are not shown here for convenience.}
+\label{fig}
+\end{figure}
+
+Following from the diagram, the states are derived in the following way. \\
+\begin{align}
+    \textbf{x} &= \begin{bmatrix}
+           x \\
+           y \\
+           \theta \\
+           \alpha
+         \end{bmatrix}
+  \end{align}
+
+
+\section{Optimization Formulation}
+In this section, we explain the necessary nonlinear program formulation to solve for a cube trajectory through space. We'll start by explaining this in the context of a simple swing up of the cube.
+
+\subsection{The Simple Swing Up}
+Explain the problem formulation of the swing up.
+
+Explain that LQR could be used to control after achieving swing up.
+
+\subsection{Experiments in Higher Dimensional State Space}
+Explain how 3D seemed to help in some cases even though some states don't enter dynamics.
+
+\subsection{Stable Walking Motion}
+
+Explain how to achieve stable walking motion.
+
+\section*{Results}
+
+Explanation of results section. This should include more diagrams.
+
+\section*{Future Work}
+
+Future work section.
+
+\begin{thebibliography}{00}
+\bibitem{b1} M. Posa, C. Cantu, and R. Tedrake. ``A Direct Method for Trajectory Optimization of Rigid Bodies Through Contact,'' in The International Journal of Robotics Research, 2014 \url{http://groups.csail.mit.edu/robotics-center/public_papers/Posa13.pdf}
+\bibitem{b2} M. Gajamohan, M. Merz, I. Thommen, and R. D'Andrea. ``The Cubli: A Cube that can Jump Up and Balance'' in IEEE/RSJ International Conference on
+Intelligent Robots and Systems, 2012 \url{https://www.ethz.ch/content/dam/ethz/special-interest/mavt/dynamic-systems-n-control/idsc-dam/Research_DAndrea/Cubli/Cubli_IROS2012.pdf}
+\bibitem{b3} J. Romaniskin, K. Gilpin, and D. Rus. ``M-Blocks: Momentum-driven, Magnetic Modular Robots'' in Proc. IROS, IEEE/RSJ, 2013
+\url{http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.824.7275&rep=rep1&type=pdf}
+\end{thebibliography}
+\vspace{12pt}
+
+\end{document}
