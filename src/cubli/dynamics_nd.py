@@ -293,7 +293,7 @@ def compute_optimal_control(initial_state, final_state, min_time, max_time, max_
         mp.AddConstraint(u_over_time[n,0] >= -max_torque)
 
     # try to keep the velocity of the wheel in the correct direction
-    mp.AddLinearCost(x_over_time[:,-1].sum())
+    # mp.AddLinearCost(x_over_time[:,-1].sum())
 
     print "Number of decision vars", mp.num_vars()
     print(mp.Solve())

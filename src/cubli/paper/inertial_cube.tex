@@ -123,8 +123,10 @@ The swing-up is performed by getting the cube to stand on exactly one corner in 
 & & x[n+1] = x[n] + f(x[n], u[n], f[n])dt,\\
 &&& n \in [0,N-1], \\
 &&& -u_{max} < u < u_{max}, \\
-&&& 0 < f[n][:] < f_{max}, \\
+&&& 0 < f[n][i] < f_{max}, i \in [0,7], \\
 &&& c[n][:] \cdot \phi[:] = 0.0, \\
+&&& x[0] = x_{initial}, \\
+&&& x[N] = x_{final}, \\
 \end{aligned}
 \end{equation*}
 
@@ -143,7 +145,7 @@ $c[n][3] &= f[n][6]*f[n][7]$
 \end{itemize}.
 
 \subsection{Swing-Up Results}
-The computed trajectory values are shown in Fig. \ref{fig:swing_states}, \ref{fig:swing_input}, and \ref{fig:swing_ground}. This computed result is formated without a cost function. Rather, we are looking for a solution the satisfied all of our constraints.
+The computed trajectory values are shown in Fig. \ref{fig:swing_states}, \ref{fig:swing_input}, and \ref{fig:swing_ground}. This computed result is formated without a cost function. Rather, we are looking for a solution the satisfied all of our constraints. The trajectory in these figures start on the ground and stands on corner 0. See this video for live graphical depiction of the states over time \url{https://www.youtube.com/watch?v=EH4mXZSPz5o}.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=9cm,keepaspectratio]{media/swing_up/swing_up_states.png}}
@@ -157,10 +159,10 @@ The computed trajectory values are shown in Fig. \ref{fig:swing_states}, \ref{fi
 \label{fig:swing_ground}
 \end{figure}
 
-Explain that LQR could be used to control after achieving swing up.
+After achieving the swing up in this way, one could most definitely control the position using LQR \cite{b1}. However, this was not attempted in our trajectory optimization work.
 
 \subsection{Experiments in Higher Dimensional State Space}
-Explain how 3D seemed to help in some cases even though some states don't enter dynamics.
+Explain how 3D seemed to help in some cases even though some states don't enter dynamics. We did a few experiments are reading some work done on nonlinear optimization in high dimensions \cite{b5}.
 
 \subsection{Stable Walking Motion}
 
@@ -168,7 +170,7 @@ Explain how to achieve stable walking motion.
 
 \section*{Results}
 
-Explanation of results section. This should include more diagrams.
+In this section we discuss overall results and trends discovered throughout the more specific examples covered thus far.
 
 \section*{Future Work}
 
