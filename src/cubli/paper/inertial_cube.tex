@@ -53,31 +53,31 @@ Fig.~\ref{fig:cube} is a diagram depicting the states of the cube. The cube is d
 \label{fig:cube}
 \end{figure}
 
-Following from the cube diagram, the full states can be described in the following way. \\
+Following from the cube diagram, the full states can be described in the following way.
 
 \begin{align}
   \textbf{x} =
     \begin{bmatrix}
-         x \\
-         y \\
-         \theta \\
-         \alpha \\
-         \dot x \\
-         \dot y \\
-         \dot \theta \\
+         x &
+         y &
+         \theta &
+         \alpha &
+         \dot x &
+         \dot y &
+         \dot \theta &
          \dot \alpha
-    \end{bmatrix} &&
+    \end{bmatrix}^{T} \\
   \bm{\dot x} =
     \begin{bmatrix}
-         \dot x \\
-         \dot y \\
-         \dot \theta \\
-         \dot \alpha \\
-         \ddot x \\
-         \ddot y \\
-         \ddot \theta \\
+         \dot x &
+         \dot y &
+         \dot \theta &
+         \dot \alpha &
+         \ddot x &
+         \ddot y &
+         \ddot \theta &
          \ddot \alpha
-    \end{bmatrix}
+    \end{bmatrix}^{T}
 \end{align}
 
 These state vector $\textbf{x}$ includes both the positions, angles, and their velocities. This is standard state-space notation. Following from Fig.~\ref{fig:cube}, the dynamics are the following. These dynamics are informed by prior work done at Chalmers University of Technology \cite{b4} but modified for this state-space description and free-body coordinates.
@@ -86,25 +86,64 @@ These state vector $\textbf{x}$ includes both the positions, angles, and their v
 \ddot x &= (f_{1}-f_{2}+f_{6}-f_{5})\cos{\theta} - (f_{0}+f_{3}-f_{4}-f_{7})\sin{\theta} \\
 \ddot y &= (f_{1}-f_{2}+f_{6}-f_{5})\sin{\theta} + (f_{0}+f_{3}-f_{4}-f_{7})\cos{\theta}-g \\
 \ddot \theta &= \frac{-u + b_{w}\dot\alpha - b_{c}\dot\theta}{I_c} + \frac{1}{2}(\sum_{\set{n\in{1,3,5,7}}} f_{n} - \sum_{\set{n\in{0,2,4,6}}} f_{n}) \\
-\ddot \alpha &= \frac{u(I_{c}+I{w}) + b_{c}I_{w}\dot\theta - b_{w}\frac{I_{c}+I_{w}}{2}\dot\alpha}{I_{w}I_{c}}
+\ddot \alpha &= \frac{u(I_{c}+I_{w}) + b_{c}I_{w}\dot\theta - b_{w}\frac{I_{c}+I_{w}}{2}\dot\alpha}{I_{w}I_{c}}
 \end{align}
 
-Here we explain the notation used in the dynamics and the few simple assumptions made. \\
+Here we explain the notation used in the dynamics and the few simplifying assumptions made.
+
 \begin{itemize}
 \item $f_{n}$ is the force acting on the corner based on Fig.~\ref{fig:cube}.
 \item $u$ is the torque on the interial wheel.
 \item The cube is unit sized, meaning its dimensions are 1 for each edge length.
-\item 
+\item $b_{w}$ and $b_{c}$ are the friction coeffients for the wheel and cube respectively.
+\item $I_{w}$ and $I_{c}$ are the moments of inertia for the wheel and cube respectively.
+\item The mass of the cube and wheel are each $0.5$ kg.
+\end{itemize}
+
+In this paper, the static values are the following. We chose not to spend much time on choosing accurate values. The purpose of this project is to use contact-implicit trajectory optimization, which is described in the next section.
+
+\begin{itemize}
+\item $b_{w} = b_{c} = 0.5$
+\item $I_{w} = I_{c} = 0.5$
+\item $g = 9.81$
 \end{itemize}
 
 
-
-
 \section{Optimization Formulation}
-In this section, we explain the necessary nonlinear program formulation to solve for a cube trajectory through space. We'll start by explaining this in the context of a simple swing up of the cube. This motion involves contact with the ground, which is why we are choosing do use contact-implicit trajectory optimization to avoid dealing with many modes of the system \cite{b1}.
+In this section, we explain the necessary nonlinear program formulation to solve for a cube trajectory through space. We'll start by explaining this in the context of a swing up of the cube. This motion involves contact with the ground, which is why we are choosing do use contact-implicit trajectory optimization to avoid dealing with many modes of the system \cite{b1}.
 
-\subsection{The Simple Swing-Up}
-The swing-up is performed by getting the cube to stand on exactly one corner in a stable position. By using the contact-implicit trajectory optimization, this is possible. The computed trajectory values are showing in Fig. \ref{fig:swing_states}, \ref{fig:swing_input}, and \ref{fig:swing_ground}. This computed result is formated without a cost function. Rather, we are looking for a solution the satisfied all of our constraints.
+\subsection{The Swing-Up Formulation}
+The swing-up is performed by getting the cube to stand on exactly one corner in a stable position. By using the contact-implicit trajectory optimization, this is possible. We formulate the optimization problem with direct transcription and a complimentarity contraint to keep the cube above the ground.
+
+\begin{equation*}
+\begin{aligned}
+& \underset{x[0:N],u[0:N],f[0:N]}{\text{find}} \\
+% & & u[:],f[:] \\
+& \text{subject to}
+& & x[n+1] = x[n] + f(x[n], u[n], f[n])dt,\\
+&&& n \in [0,N-1], \\
+&&& -u_{max} < u < u_{max}, \\
+&&& 0 < f[n][:] < f_{max}, \\
+&&& c[n][:] \cdot \phi[:] = 0.0, \\
+\end{aligned}
+\end{equation*}
+
+Here is a description of the values used in the optimization.
+\begin{itemize}
+\item $f(x[n], u[n], f[n])$ is $\bm{\dot x}$.
+\item $dt$ is the timestep.
+\item $N$ is the number of knot points, which will implicitly define the timestep.
+\item $0 < f[n][:] < f_{max}$ to make sure contact forces only push away from the ground
+\item $c[n][i]$ is an intermediate value describing if there is a force on the i$^{th}$ corner.
+$c[n][0] &= f[n][0]*f[n][1]$ \\
+$c[n][1] &= f[n][2]*f[n][3]$ \\
+$c[n][2] &= f[n][4]*f[n][5]$ \\
+$c[n][3] &= f[n][6]*f[n][7]$
+\item $\phi[i]$ is the distance from the i$^{th}$ corner to the ground
+\end{itemize}.
+
+\subsection{Swing-Up Results}
+The computed trajectory values are shown in Fig. \ref{fig:swing_states}, \ref{fig:swing_input}, and \ref{fig:swing_ground}. This computed result is formated without a cost function. Rather, we are looking for a solution the satisfied all of our constraints.
 
 \begin{figure}[htbp]
 \centerline{\includegraphics[width=9cm,keepaspectratio]{media/swing_up/swing_up_states.png}}
