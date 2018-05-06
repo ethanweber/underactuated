@@ -293,10 +293,7 @@ def compute_optimal_control(initial_state, final_state, min_time, max_time, max_
         mp.AddConstraint(u_over_time[n,0] >= -max_torque)
 
     # try to keep the velocity of the wheel in the correct direction
-    # mp.AddLinearCost(x_over_time[:,-1].sum())
-
-    mp.SetInitialGuess(u_over_time[0,0], -3.0)
-    mp.SetInitialGuess(u_over_time[0,1] == 0.0)
+    mp.AddLinearCost(x_over_time[:,-1].sum())
 
     print "Number of decision vars", mp.num_vars()
     print(mp.Solve())
@@ -356,3 +353,92 @@ class MeshcatCubeVisualizer:
 
         state_initial = (x,y,theta,alpha,x_dot,y_dot,theta_dot,alpha_dot)
         self.draw_transformation(state_initial, 2)
+
+
+def contact_next_state(state, u, dt, dim=2):
+    """Return the next state after computing the force for the given timestep.
+    Note that this is not guaranteed to work realtime or even every time.
+
+    Keyword arguments:
+    state -- the state of the cube
+    u -- the input torque on the wheel
+    dt -- the timestep size
+    dim -- the dimension of the state space (default 2)
+    """
+
+    mu = 0.1 # friction force
+    max_ground_force = 200
+    complimentarity_constraint_thresh = 0.01
+
+    # use SNOPT in Drake
+    mp = MathematicalProgram()
+
+    floor_offset = -0.01 # used to allow a little penitration
+
+    x = mp.NewContinuousVariables(len(state), "x_%d" % 0)
+    u_decision = mp.NewContinuousVariables(len(u), "u_%d" % 0)
+    f = mp.NewContinuousVariables(8, "f_%d" % 0)
+
+    # starting values
+    for i in range(len(x)):
+        mp.AddConstraint(x[i] == state[i])
+    for i in range(len(u)):
+        mp.AddConstraint(u_decision[i] == u[i])
+
+    dynamic_state_next = x[:] + get_nd_dynamics(x[:], u_decision[:], f[:], dim)*dt
+
+    # can't penitrate the floor
+    distances = get_corner_distances(dynamic_state_next, dim)
+    mp.AddConstraint(distances[0] >= floor_offset)
+    mp.AddConstraint(distances[1] >= floor_offset)
+    mp.AddConstraint(distances[2] >= floor_offset)
+    mp.AddConstraint(distances[3] >= floor_offset)
+
+    # ground forces can't pull on the ground
+    for j in range(8):
+        # mp.AddConstraint(f[j] <= max_ground_force)
+        mp.AddConstraint(f[j] >= 0)
+
+    # add complimentary constraint
+    theta = state[dim]
+
+    distances = get_corner_distances(state, dim)
+
+    s = sin(theta)
+    c = cos(theta)
+
+    z_0 = f[0]*c + f[1]*s
+    z_1 = - f[2]*s + f[3]*c
+    z_2 = - f[4]*c - f[5]*s
+    z_3 = f[6]*s - f[7]*c
+
+    xy_0 = - f[0]*s + f[1]*c
+    xy_1 = - f[2]*c - f[3]*s
+    xy_2 = f[4]*s - f[5]*c
+    xy_3 = f[6]*c + f[7]*s
+
+    mp.AddConstraint(xy_0 <= z_0*mu)
+    mp.AddConstraint(xy_0 >= -z_0*mu)
+    mp.AddConstraint(xy_1 <= z_1*mu)
+    mp.AddConstraint(xy_1 >= -z_1*mu)
+    mp.AddConstraint(xy_2 <= z_2*mu)
+    mp.AddConstraint(xy_2 >= -z_2*mu)
+    mp.AddConstraint(xy_3 <= z_3*mu)
+    mp.AddConstraint(xy_3 >= -z_3*mu)
+
+    vector_0 = f[0] * f[1]
+    vector_1 = f[2] * f[3]
+    vector_2 = f[4] * f[5]
+    vector_3 = f[6] * f[7]
+
+    val = np.asarray([vector_0, vector_1, vector_2, vector_3])
+
+    mp.AddConstraint(val.dot(distances) <= complimentarity_constraint_thresh)
+    mp.AddConstraint(val.dot(distances) >= -complimentarity_constraint_thresh)
+
+    # print "Number of decision vars", mp.num_vars()
+    # print(mp.Solve())
+    mp.Solve()
+
+    f_comp = mp.GetSolution(f)
+    return state + get_nd_dynamics(state, u, f_comp, dim)*dt
