@@ -216,11 +216,12 @@ def compute_optimal_control(initial_state, final_state, min_time, max_time, max_
             mp.AddConstraint(distances[2] <= np.sqrt(2)+stay_on_ground_tolerance)
             mp.AddConstraint(distances[3] <= np.sqrt(2)+stay_on_ground_tolerance)
 
-        x_pos = get_corner_x_positions(total_x[n,:], dim)
-        # make left corner on the ground
-        mp.AddConstraint(distances[0] == 0.0)
-        num, loc = corner_fix
-        mp.AddConstraint(x_pos[num] == loc)
+        if fix_corner_on_ground == True:
+            x_pos = get_corner_x_positions(total_x[n,:], dim)
+            # make left corner on the ground
+            mp.AddConstraint(distances[0] == 0.0)
+            num, loc = corner_fix
+            mp.AddConstraint(x_pos[num] == loc)
 
     # ground forces can't pull on the ground
     for n in range(N):
@@ -259,15 +260,20 @@ def compute_optimal_control(initial_state, final_state, min_time, max_time, max_
         mp.AddConstraint(xy_3 <= z_3*mu)
         mp.AddConstraint(xy_3 >= -z_3*mu)
 
-        vector_0 = force[0] * force[1]
-        vector_1 = force[2] * force[3]
-        vector_2 = force[4] * force[5]
-        vector_3 = force[6] * force[7]
+        # vector_0 = force[0] * force[1]
+        # vector_1 = force[2] * force[3]
+        # vector_2 = force[4] * force[5]
+        # vector_3 = force[6] * force[7]
+        # val = np.asarray([vector_0, vector_1, vector_2, vector_3])
+        # mp.AddConstraint(val.dot(distances) <= complimentarity_constraint_thresh)
+        # mp.AddConstraint(val.dot(distances) >= -complimentarity_constraint_thresh)
 
-        val = np.asarray([vector_0, vector_1, vector_2, vector_3])
-
-        mp.AddConstraint(val.dot(distances) <= complimentarity_constraint_thresh)
-        mp.AddConstraint(val.dot(distances) >= -complimentarity_constraint_thresh)
+        val_0 = np.asarray([force[0], force[2], force[4], force[6]])
+        val_1 = np.asarray([force[1], force[3], force[5], force[7]])
+        mp.AddConstraint(val_0.dot(distances) <= complimentarity_constraint_thresh)
+        mp.AddConstraint(val_0.dot(distances) >= -complimentarity_constraint_thresh)
+        mp.AddConstraint(val_1.dot(distances) <= complimentarity_constraint_thresh)
+        mp.AddConstraint(val_1.dot(distances) >= -complimentarity_constraint_thresh)
 
     # initial state, no state error allowed
     for i in range(state_len):
@@ -294,6 +300,9 @@ def compute_optimal_control(initial_state, final_state, min_time, max_time, max_
 
     # try to keep the velocity of the wheel in the correct direction
     # mp.AddLinearCost(x_over_time[:,-1].sum())
+
+    # mp.AddLinearCost(-x_over_time[:,1].sum())
+    # mp.AddLinearCost(-x_over_time[N//2,1])
 
     print "Number of decision vars", mp.num_vars()
     print(mp.Solve())
