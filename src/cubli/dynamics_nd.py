@@ -9,6 +9,8 @@ import meshcat
 import meshcat.geometry as g
 import meshcat.transformations as tf
 
+from constraints import *
+
 def get_nd_state(state, dim=2):
     """Return higher dimensional state given a state in 2D.
 
@@ -464,6 +466,7 @@ def periodic_motion(dim=2):
     mp.AddConstraint(x_over_time[0,0] == 0.0) # x
     mp.AddConstraint(x_over_time[0,1] == 0.0) # y
     mp.AddConstraint(x_over_time[0,2] == 0.0) # 0 angle
+    mp.AddConstraint(x_over_time[0,3] == 0.0) # alpha angle
     # final
     mp.AddConstraint(x_over_time[-1,0] == -1.0) # x
     mp.AddConstraint(x_over_time[-1,1] == 0.0) # y
@@ -498,6 +501,104 @@ def periodic_motion(dim=2):
     time_array = np.arange(0.0, t, t/(N+1))
 
     return trajectory, input_trajectory, force_trajectory, time_array
+
+def qp_controller(current_state, desired_state, dt, dim=2):
+    """This is the controller that returns the torque for the desired state.
+
+    Keyword arguments:
+    current_state -- current state
+    desired_state -- desired state
+    dt -- timestep
+    dim -- state dimension (default 2)
+    """
+
+    # half state length
+    hl = len(current_state) / 2
+
+    mp = MathematicalProgram()
+
+    x = mp.NewContinuousVariables(len(current_state), "x")
+    x_start = x
+    u = mp.NewContinuousVariables(1, "u")
+    solved_torque = u
+    force = mp.NewContinuousVariables(8, "force")
+    solved_force = force
+
+    # stay on floor
+    add_floor_constraint(mp, x, dim)
+    # for corner to ground
+    fix_corner_to_ground(mp, x, 0, -0.5, dim)
+    # don't pull on ground
+    dont_pull_on_ground(mp, force, dim)
+    # bounded to not leave the ground
+    stay_on_ground(mp, x, dim)
+    # only force when on ground
+    complimentarity_constraint(mp, x, force, dim)
+    # set the initial state
+    set_initial_state(mp, x, current_state, dim)
+
+    # enforce the dynamics
+    state = x + get_nd_dynamics(x, u, force, dim)*dt
+
+    # unpack the states
+    x = state[0]
+    y = state[1]
+    theta = state[dim]
+    alpha = state[hl-1]
+    xdot = state[0+hl]
+    ydot = state[1+hl]
+    theta_dot = state[dim+hl]
+    alpha_dot = state[-1]
+
+    # unpack the desired states
+    x_des = desired_state[0]
+    y_des = desired_state[1]
+    theta_des = desired_state[dim]
+    alpha_des = desired_state[hl-1]
+    xdot_des = desired_state[0+hl]
+    ydot_des = desired_state[1+hl]
+    theta_dot_des = desired_state[dim+hl]
+    alpha_dot_des = desired_state[-1]
+
+
+    # kp = 100.0 # position gain
+    current_pos = np.asarray([x,y,theta,alpha, theta_dot, alpha_dot])
+    des_pos = np.asarray([x_des,y_des,theta_des,alpha_des, theta_dot_des, alpha_dot_des])
+    pos_diff = current_pos - des_pos
+    # print(pos_diff)
+    pos = pos_diff.dot(pos_diff)
+    mp.AddQuadraticCost(pos)
+
+
+    #
+    # current_vel = np.asarray([xdot, ydot, theta_dot, alpha_dot])
+    # des_vel = np.asarray([xdot_des, ydot_des, theta_dot_des, alpha_dot_des])
+    # vel_diff = current_vel - des_vel
+    # # print(vel_diff)
+    # vel = vel_diff.dot(vel_diff)
+
+    # kp = 100.0 # position gain
+    # kd = 1.0 # velocity gain
+
+    # print(pos)
+
+    # print(kp*pos)
+    # print(kd*vel)
+
+    # print(type(current_vel))
+    # print(current_vel)
+    # print("\n\n")
+    # print(type(des_vel))
+    # mp.AddQuadraticCost(kp*pos)
+    # mp.AddQuadraticCost(vel)
+
+    print(mp.Solve())
+
+    my_torque = mp.GetSolution(solved_torque)
+    my_force = mp.GetSolution(solved_force)
+    my_start = mp.GetSolution(x_start)
+
+    return my_start, my_torque, my_force
 
 def compute_optimal_control(initial_state, final_state, min_time, max_time, max_torque, dim=2):
 
@@ -730,7 +831,6 @@ class MeshcatCubeVisualizer:
 
         state_initial = (x,y,theta,alpha,x_dot,y_dot,theta_dot,alpha_dot)
         self.draw_transformation(state_initial, 2)
-
 
 def contact_next_state(state, u, dt, dim=2):
     """Return the next state after computing the force for the given timestep.
