@@ -136,6 +136,32 @@ def plot_states(traj, time_array, dim=2):
     plt.suptitle('states vs. time (sec)')
     plt.show()
 
+def plot_vels(traj, time_array, dim=2):
+
+    hl = len(traj[0]) / 2
+
+    x_dot_traj = traj[:,0+hl]
+    y_dot_traj = traj[:,1+hl]
+    theta_dot_traj = traj[:,dim+hl]
+    alpha_dot_traj = traj[:,-1]
+
+    f, axarr = plt.subplots(2, 2, figsize=(10,5))
+
+    axarr[0, 0].plot(time_array[:len(traj)], x_dot_traj, 'b--', label='x_dot')
+    axarr[0, 0].legend(shadow=True, fontsize='x-large').get_frame().set_facecolor('#FFFFFF')
+
+    axarr[0, 1].plot(time_array[:len(traj)], y_dot_traj, 'b--', label='y_dot')
+    axarr[0, 1].legend(shadow=True, fontsize='x-large').get_frame().set_facecolor('#FFFFFF')
+
+    axarr[1, 0].plot(time_array[:len(traj)], theta_dot_traj, 'b--', label='theta_dot')
+    axarr[1, 0].legend(shadow=True, fontsize='x-large').get_frame().set_facecolor('#FFFFFF')
+
+    axarr[1, 1].plot(time_array[:len(traj)], alpha_dot_traj, 'b--', label='alpha_dot')
+    axarr[1, 1].legend(shadow=True, fontsize='x-large').get_frame().set_facecolor('#FFFFFF')
+
+    plt.suptitle('velocities vs. time (sec)')
+    plt.show()
+
 def input_plot(input_traj, time_array, dim=2):
     """Creates a plot of input torque on the wheel.
 

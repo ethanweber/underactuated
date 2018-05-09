@@ -1,6 +1,54 @@
 # define thresholds throughout
+import numpy as np
+from pydrake.math import sin, cos
 
-from dynamics_nd import *
+def get_corner_distances(state, dim=2):
+    """Return distances to ground in the corner order [0,1,2,3] as a numpy array.
+
+    Keyword arguments:
+    state -- the state of the cube
+    dim -- the dimension of the state space (default 2)
+    """
+
+    y = state[1]
+    theta = state[dim]
+
+    offset = .5*np.sqrt(2)*sin(np.pi/4.0+theta)
+    val = sin(theta)
+
+    dist_0 = y - offset
+    dist_1 = dist_0 + val
+    dist_2 = y + offset
+    dist_3 = dist_2 - val
+
+    # add .5 for the offset
+    dist_0 += .5
+    dist_1 += .5
+    dist_2 += .5
+    dist_3 += .5
+
+    return np.asarray([dist_0, dist_1, dist_2, dist_3])
+
+def get_corner_x_positions(state, dim=2):
+    """Return x position of the corners in the order [0,1,2,3] as a numpy array.
+
+    Keyword arguments:
+    state -- the state of the cube
+    dim -- the dimension of the state space (default 2)
+    """
+
+    x = state[0]
+    theta = state[dim]
+
+    offset = .5*np.sqrt(2)*cos(np.pi/4.0+theta)
+    val = cos(theta)
+
+    pos_0 = x - offset
+    pos_1 = pos_0 + val
+    pos_2 = x + offset
+    pos_3 = pos_2 - val
+
+    return np.asarray([pos_0, pos_1, pos_2, pos_3])
 
 floor_offset = -.01 # used to allow a little penitration
 def add_floor_constraint(mp, state, dim=2):
@@ -36,8 +84,8 @@ def dont_pull_on_ground(mp, force, dim=2):
         mp.AddConstraint(force[j] >= 0)
 
 
-complimentarity_constraint_thresh = 0.0
-mu = 0.001 # friction force
+complimentarity_constraint_thresh = 0.0001
+mu = 0.1 # friction force
 def complimentarity_constraint(mp, state, force, dim=2):
     theta = state[dim]
 

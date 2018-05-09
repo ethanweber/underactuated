@@ -30,6 +30,16 @@ def get_nd_state(state, dim=2):
         return nd_state
     return state
 
+
+# mass
+m_c = 0.5 # cube
+m_w = 0.5 # wheel
+# friction
+F_c = 0.5
+F_w = 0.5
+# moments of inertia
+I_c = 1.0
+I_w = 1.0
 def get_nd_dynamics(state, u, force, dim=2):
     """Return state space dyanmics in n dimensions.
 
@@ -42,19 +52,8 @@ def get_nd_dynamics(state, u, force, dim=2):
     # half state length
     hl = len(state) / 2
 
-    # mass
-    m_c = 1.0 # cube
-    m_w = 1.0 # wheel
-    m_t = m_c + m_w # total
-
-    # moments of inertia
-    I_c = 1.0
-    I_w = 1.0
-    I_t = I_c + I_w
-
-    # friction
-    F_c = 0.5
-    F_w = 0.5
+    m_t = m_c + m_w # total mass
+    I_t = I_c + I_w # total inertia
 
     # gravity
     g = 9.81
@@ -75,7 +74,7 @@ def get_nd_dynamics(state, u, force, dim=2):
 
     # ballistic dynamics
     derivs[0+hl] = (force[1] - force[2] + force[6] - force[5])*cos(theta) - (force[0] + force[3] - force[4] - force[7])*sin(theta) # forces along x
-    derivs[1+hl] = (force[1] - force[2] + force[6] - force[5])*sin(theta) + (force[0] + force[3] - force[4] - force[7])*cos(theta) - g  # forces in y direction
+    derivs[1+hl] = (force[1] - force[2] + force[6] - force[5])*sin(theta) + (force[0] + force[3] - force[4] - force[7])*cos(theta) - g*m_t  # forces in y direction
 
     # cube angle acceleration
     derivs[dim + hl] = (-u[0] + F_w*alpha_dot - F_c*theta_dot)/I_c + (-force[0]+force[1]-force[2]+force[3]-force[4]+force[5]-force[6]+force[7])*.5
@@ -84,54 +83,6 @@ def get_nd_dynamics(state, u, force, dim=2):
     derivs[-1] = (u[0]*I_t + F_c*theta_dot*I_w - F_w*alpha_dot*I_t)/(I_w*I_c)
 
     return derivs
-
-def get_corner_distances(state, dim=2):
-    """Return distances to ground in the corner order [0,1,2,3] as a numpy array.
-
-    Keyword arguments:
-    state -- the state of the cube
-    dim -- the dimension of the state space (default 2)
-    """
-
-    y = state[1]
-    theta = state[dim]
-
-    offset = .5*np.sqrt(2)*sin(np.pi/4.0+theta)
-    val = sin(theta)
-
-    dist_0 = y - offset
-    dist_1 = dist_0 + val
-    dist_2 = y + offset
-    dist_3 = dist_2 - val
-
-    # add .5 for the offset
-    dist_0 += .5
-    dist_1 += .5
-    dist_2 += .5
-    dist_3 += .5
-
-    return np.asarray([dist_0, dist_1, dist_2, dist_3])
-
-def get_corner_x_positions(state, dim=2):
-    """Return x position of the corners in the order [0,1,2,3] as a numpy array.
-
-    Keyword arguments:
-    state -- the state of the cube
-    dim -- the dimension of the state space (default 2)
-    """
-
-    x = state[0]
-    theta = state[dim]
-
-    offset = .5*np.sqrt(2)*cos(np.pi/4.0+theta)
-    val = cos(theta)
-
-    pos_0 = x - offset
-    pos_1 = pos_0 + val
-    pos_2 = x + offset
-    pos_3 = pos_2 - val
-
-    return np.asarray([pos_0, pos_1, pos_2, pos_3])
 
 
 # saving this function because it works for swing up
@@ -485,11 +436,14 @@ def periodic_motion(dim=2):
         mp.AddConstraint(u_over_time[n,0] <= max_torque)
         mp.AddConstraint(u_over_time[n,0] >= -max_torque)
 
-    # try to keep the velocity of the wheel in the correct direction
-    # mp.AddLinearCost(x_over_time[:,-1].sum())
+    # minimize input
+    mp.AddQuadraticCost(u_over_time[:,0].dot(u_over_time[:,0]))
 
-    # mp.AddLinearCost(-x_over_time[:,1].sum())
-    # mp.AddLinearCost(-x_over_time[N//2,1])
+    # maximize velocity in correct direction (left)
+    # mp.AddLinearCost(x_over_time[:,4].sum())
+
+    # minimize the time
+    # mp.AddLinearCost(time_used[0])
 
     print "Number of decision vars", mp.num_vars()
     print(mp.Solve())
@@ -560,37 +514,11 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     theta_dot_des = desired_state[dim+hl]
     alpha_dot_des = desired_state[-1]
 
-
-    # kp = 100.0 # position gain
-    current_pos = np.asarray([x,y,theta,alpha, theta_dot, alpha_dot])
-    des_pos = np.asarray([x_des,y_des,theta_des,alpha_des, theta_dot_des, alpha_dot_des])
-    pos_diff = current_pos - des_pos
-    # print(pos_diff)
+    # current_pos = np.asarray([x,y,theta,alpha,xdot,ydot,theta_dot,alpha_dot])
+    # des_pos = np.asarray([x_des,y_des,theta_des,alpha_des,xdot_des,ydot_des,theta_dot_des,alpha_dot_des])
+    pos_diff = state - np.asarray(desired_state)
     pos = pos_diff.dot(pos_diff)
     mp.AddQuadraticCost(pos)
-
-
-    #
-    # current_vel = np.asarray([xdot, ydot, theta_dot, alpha_dot])
-    # des_vel = np.asarray([xdot_des, ydot_des, theta_dot_des, alpha_dot_des])
-    # vel_diff = current_vel - des_vel
-    # # print(vel_diff)
-    # vel = vel_diff.dot(vel_diff)
-
-    # kp = 100.0 # position gain
-    # kd = 1.0 # velocity gain
-
-    # print(pos)
-
-    # print(kp*pos)
-    # print(kd*vel)
-
-    # print(type(current_vel))
-    # print(current_vel)
-    # print("\n\n")
-    # print(type(des_vel))
-    # mp.AddQuadraticCost(kp*pos)
-    # mp.AddQuadraticCost(vel)
 
     print(mp.Solve())
 
