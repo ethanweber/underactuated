@@ -472,11 +472,8 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     mp = MathematicalProgram()
 
     x = mp.NewContinuousVariables(len(current_state), "x")
-    x_start = x
     u = mp.NewContinuousVariables(1, "u")
-    solved_torque = u
     force = mp.NewContinuousVariables(8, "force")
-    solved_force = force
 
     # stay on floor
     add_floor_constraint(mp, x, dim)
@@ -495,7 +492,7 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     state = x + get_nd_dynamics(x, u, force, dim)*dt
 
     # unpack the states
-    x = state[0]
+    x_s = state[0]
     y = state[1]
     theta = state[dim]
     alpha = state[hl-1]
@@ -514,17 +511,27 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     theta_dot_des = desired_state[dim+hl]
     alpha_dot_des = desired_state[-1]
 
-    # current_pos = np.asarray([x,y,theta,alpha,xdot,ydot,theta_dot,alpha_dot])
-    # des_pos = np.asarray([x_des,y_des,theta_des,alpha_des,xdot_des,ydot_des,theta_dot_des,alpha_dot_des])
-    pos_diff = state - np.asarray(desired_state)
+    current_pos = np.asarray([x_s,y,theta,alpha,theta_dot,alpha_dot])
+    des_pos = np.asarray([x_des,y_des,theta_des,alpha_des,theta_dot_des,alpha_dot_des])
+    pos_diff = current_pos - des_pos
+    # pos_diff = state - np.asarray(desired_state)
     pos = pos_diff.dot(pos_diff)
-    mp.AddQuadraticCost(pos)
+    # mp.AddQuadraticCost(pos)
+
+    # add constraint on x and y vel because of sin / cos velocity
+    # thresh = 1.0
+    # xdot_error = xdot - xdot_des
+    # mp.AddConstraint(xdot_error <= thresh)
+    # mp.AddConstraint(xdot_error >= thresh)
+    # ydot_error = ydot - ydot_des
+    # mp.AddConstraint(ydot_error <= thresh)
+    # mp.AddConstraint(ydot_error >= thresh)
 
     print(mp.Solve())
 
-    my_torque = mp.GetSolution(solved_torque)
-    my_force = mp.GetSolution(solved_force)
-    my_start = mp.GetSolution(x_start)
+    my_torque = mp.GetSolution(u)
+    my_force = mp.GetSolution(force)
+    my_start = mp.GetSolution(x)
 
     return my_start, my_torque, my_force
 
