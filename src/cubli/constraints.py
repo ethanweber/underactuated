@@ -76,15 +76,22 @@ def fix_corner_to_ground(mp, state, corner_index=0, x_coord=-0.5, dim=2):
     mp.AddConstraint(distances[corner_index] == 0.0)
     mp.AddConstraint(x_pos[corner_index] == x_coord)
 
+def add_corner_cost(mp, state, corner_index=0, x_coord=-0.5, dim=2):
+    distances = get_corner_distances(state[:], dim)
+    # make left corner on the ground in specified position with quadratic cost
+    x_pos = get_corner_x_positions(state, dim)
+    mp.AddQuadraticCost(distances[corner_index]**2)
+    mp.AddQuadraticCost((x_pos[corner_index] - x_coord)**2)
 
-max_ground_force = 100
+
+max_ground_force = 1000
 def dont_pull_on_ground(mp, force, dim=2):
     for j in range(len(force)):
         mp.AddConstraint(force[j] <= max_ground_force)
         mp.AddConstraint(force[j] >= 0)
 
 
-complimentarity_constraint_thresh = 0.0001
+complimentarity_constraint_thresh = 0.1
 mu = 0.1 # friction force
 def complimentarity_constraint(mp, state, force, dim=2):
     theta = state[dim]
@@ -125,3 +132,8 @@ def complimentarity_constraint(mp, state, force, dim=2):
 def set_initial_state(mp, x, current_state, dim):
     for i in range(len(x)):
         mp.AddConstraint(x[i] == current_state[i])
+
+def bound_abs_value(mp, var, thresh):
+    for i in range(len(var)):
+        mp.AddConstraint(var[i] <= thresh)
+        mp.AddConstraint(var[i] >= -thresh)
