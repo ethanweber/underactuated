@@ -181,7 +181,7 @@ def input_plot(input_traj, time_array, dim=2):
     plt.title("torque vs. time (sec)")
     plt.show()
 
-def ground_force_plot(force_traj, time_array, dim=2):
+def ground_force_plot(force_traj, time_array, dim=2, side="left"):
 
     fig, ax = plt.subplots()
 
@@ -197,7 +197,7 @@ def ground_force_plot(force_traj, time_array, dim=2):
     ax.plot(time_array[:len(force_traj)], force_traj[:,6], 'o--', label='6')
     ax.plot(time_array[:len(force_traj)], force_traj[:,7], 'o', label='7')
 
-    legend = ax.legend(shadow=False, fontsize='large', loc='upper left')
+    legend = ax.legend(shadow=False, fontsize='large', loc='upper {}'.format(side))
     legend.get_frame().set_facecolor('#FFFFFF')
 
     plt.title("contact force vs. time (sec)")

@@ -90,7 +90,7 @@ def add_corner_cost(mp, state, corner_index=0, x_coord=-0.5, dim=2, linearize_th
 
     x_pos = get_corner_x_positions(state, dim, linearize_theta)
     x_diff = x_pos[corner_index]  - x_coord
-    mp.AddQuadraticCost(1000*x_diff*x_diff)
+    # mp.AddQuadraticCost(x_diff*x_diff)
 
 
 max_ground_force = 1000
@@ -101,7 +101,7 @@ def dont_pull_on_ground(mp, force, dim=2):
 
 
 complimentarity_constraint_thresh = 0.1
-mu = 0.1 # friction force
+mu = 10.0 # friction force
 def complimentarity_constraint(mp, state, force, dim=2):
     theta = state[dim]
 

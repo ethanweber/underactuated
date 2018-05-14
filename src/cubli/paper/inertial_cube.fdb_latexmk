@@ -1,5 +1,5 @@
 # Fdb version 3
-["pdflatex"] 1525579446 "inertial_cube.tex" "inertial_cube.pdf" "inertial_cube" 1525579446
+["pdflatex"] 1525579446 "inertial_cube.tex" "inertial_cube.pdf" "inertial_cube" 1526332944
   "/usr/local/texlive/2017/texmf-dist/fonts/enc/dvips/base/8r.enc" 1480098666 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/usr/local/texlive/2017/texmf-dist/fonts/map/fontname/texfonts.map" 1480098670 3287 e6b82fe08f5336d4d5ebc73fb1152e87 ""
   "/usr/local/texlive/2017/texmf-dist/fonts/tfm/adobe/times/ptmb7t.tfm" 1480098689 2172 fd0c924230362ff848a33632ed45dc23 ""
@@ -116,7 +116,7 @@
   "media/swing_up/swing_up_states.png" 1525558607 26738 c130292b6e4b57fc030796a6892af487 ""
   "media/swing_up/swing_up_torque.png" 1525558582 13179 d41d942f0ab0d1d2e33bcd2297520890 ""
   (generated)
-  "inertial_cube.pdf"
+  "inertial_cube.aux"
   "inertial_cube.out"
   "inertial_cube.log"
-  "inertial_cube.aux"
+  "inertial_cube.pdf"

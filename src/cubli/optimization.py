@@ -203,6 +203,7 @@ def swing_up(dim=2):
 
     return trajectory, input_trajectory, force_trajectory, time_array
 
+# periodic motion
 def periodic_motion(dim=2):
 
     # print("Initial State: {}".format(initial_state))
@@ -383,8 +384,7 @@ def periodic_motion(dim=2):
 
     return trajectory, input_trajectory, force_trajectory, time_array
 
-
-# controller
+# upright controller
 def qp_controller(current_state, desired_state, dt, dim=2):
     """This is the controller that returns the torque for the desired state.
 
@@ -394,6 +394,15 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     dt -- timestep
     dim -- state dimension (default 2)
     """
+
+    # torque PD controller values
+    wheel_kp = 50.0
+    wheel_kd = 10.0
+    max_torque = 20.0
+
+    # cost on obtaining next state and velocity
+    kp = 0.0
+    kd = 1.0
 
     # half state length
     hl = len(current_state) / 2
@@ -409,9 +418,6 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     # enforce the dynamics with linearized theta
     state = x + get_nd_dynamics(x, u, force, dim, current_state[dim])*dt
 
-    # bound u
-    bound_abs_value(mp, u, 100.0)
-
     # stay on floor
     # add_floor_constraint(mp, state, dim)
     # for corner to ground
@@ -419,7 +425,7 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     # don't pull on ground
     dont_pull_on_ground(mp, force, dim)
     # bounded to not leave the ground
-    stay_on_ground(mp, state, dim)
+    # stay_on_ground(mp, state, dim)
     # only force when on ground
     complimentarity_constraint(mp, state, force, dim)
 
@@ -446,44 +452,40 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     theta_dot_des = desired_state[dim+hl]
     alpha_dot_des = desired_state[-1]
 
-    current_pos = np.asarray([x_s,y,theta,alpha])
-    des_pos = np.asarray([x_des,y_des,theta_des,alpha_des])
-    pos_diff = current_pos - des_pos
-    # current_pos = np.asarray([0,0,theta,0])
-    # des_pos = np.asarray([0,0,theta_des,0])
+    # current_pos = np.asarray([x_s,y,theta,alpha])
+    # des_pos = np.asarray([x_des,y_des,theta_des,alpha_des])
     # pos_diff = current_pos - des_pos
+    current_pos = np.asarray([x_s,y,theta,0])
+    des_pos = np.asarray([x_des,y_des,theta_des,0])
+    pos_diff = current_pos - des_pos
 
     # current_vel = np.asarray([xdot,ydot,theta_dot,alpha_dot])
     # des_vel = np.asarray([xdot_des,ydot_des,theta_dot_des,alpha_dot_des])
     # vel_diff = current_vel - des_vel
-    current_vel = np.asarray([xdot,ydot,theta_dot,alpha_dot])
-    des_vel = np.asarray([xdot_des,ydot_des,theta_dot_des,alpha_dot_des])
+    current_vel = np.asarray([xdot,ydot,theta_dot,0])
+    des_vel = np.asarray([xdot_des,ydot_des,theta_dot_des,0])
     vel_diff = current_vel - des_vel
 
     pos = pos_diff.dot(pos_diff)
     vel = vel_diff.dot(vel_diff)
 
-    # theta_p_con = theta - theta_des
-    # theta_v_con = theta_dot - theta_dot_des
-    # mp.AddQuadraticCost(theta_p_con*theta_p_con + theta_v_con*theta_v_con)
+    mp.AddQuadraticCost(kp*pos)
+    mp.AddQuadraticCost(kd*vel)
 
-    kp = 10.0
-    kd = 0.1
-    mp.AddQuadraticCost(kp*pos + kd*vel)
 
-    # force cost
-    # mp.AddQuadraticCost(force[:].dot(force[:]))
-    mp.AddQuadraticCost(-u[:].dot(u[:]))
+    # torque PD controller
+    input_torque = wheel_kp*(current_state[dim] - np.pi/4.0) + wheel_kd*current_state[dim+hl]
+    input_torque = np.clip(input_torque, -max_torque, max_torque)
+    mp.AddConstraint(u[0] == input_torque)
 
     sol = mp.Solve()
-    print(sol)
+    # print(sol)
 
     my_torque = mp.GetSolution(u)
     my_force = mp.GetSolution(force)
     my_start = mp.GetSolution(x)
 
     return my_start, my_torque, my_force
-
 
 # general controller
 def compute_optimal_control(initial_state, final_state, min_time, max_time, max_torque, dim=2):
