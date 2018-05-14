@@ -56,12 +56,10 @@ def get_nd_dynamics(state, u, force, dim=2, linearize_theta=None):
     # unpack the states
     # x = state[0]
     # y = state[1]
-    theta = state[dim]
-    # if linearize_theta is not None:
-    #     theta = linearize_theta
-    # else:
-    #     theta = state[dim]
-
+    if linearize_theta is not None:
+        theta = linearize_theta
+    else:
+        theta = state[dim]
     # alpha = state[hl-1]
     # xdot = state[0+hl]
     # ydot = state[1+hl]

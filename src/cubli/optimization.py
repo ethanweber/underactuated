@@ -410,21 +410,21 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     state = x + get_nd_dynamics(x, u, force, dim, current_state[dim])*dt
 
     # bound u
-    bound_abs_value(mp, u, 1000.0)
+    bound_abs_value(mp, u, 100.0)
 
     # stay on floor
-    add_floor_constraint(mp, state, dim)
+    # add_floor_constraint(mp, state, dim)
     # for corner to ground
     # fix_corner_to_ground(mp, state, 0, -0.5, dim)
     # don't pull on ground
     dont_pull_on_ground(mp, force, dim)
     # bounded to not leave the ground
-    # stay_on_ground(mp, state, dim)
+    stay_on_ground(mp, state, dim)
     # only force when on ground
     complimentarity_constraint(mp, state, force, dim)
 
-    # linearize theta
-    # add_corner_cost(mp, state, 0, -0.5, dim)
+    # linearize theta to set this cost
+    add_corner_cost(mp, state, 0, -0.5, dim, current_state[dim])
 
     # unpack the states
     x_s = state[0]
@@ -449,7 +449,13 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     current_pos = np.asarray([x_s,y,theta,alpha])
     des_pos = np.asarray([x_des,y_des,theta_des,alpha_des])
     pos_diff = current_pos - des_pos
+    # current_pos = np.asarray([0,0,theta,0])
+    # des_pos = np.asarray([0,0,theta_des,0])
+    # pos_diff = current_pos - des_pos
 
+    # current_vel = np.asarray([xdot,ydot,theta_dot,alpha_dot])
+    # des_vel = np.asarray([xdot_des,ydot_des,theta_dot_des,alpha_dot_des])
+    # vel_diff = current_vel - des_vel
     current_vel = np.asarray([xdot,ydot,theta_dot,alpha_dot])
     des_vel = np.asarray([xdot_des,ydot_des,theta_dot_des,alpha_dot_des])
     vel_diff = current_vel - des_vel
@@ -457,12 +463,20 @@ def qp_controller(current_state, desired_state, dt, dim=2):
     pos = pos_diff.dot(pos_diff)
     vel = vel_diff.dot(vel_diff)
 
-    kp = 1.0
-    kd = 1.0
-    mp.AddQuadraticCost(kp*pos)
-    # mp.AddQuadraticCost(kd*vel)
+    # theta_p_con = theta - theta_des
+    # theta_v_con = theta_dot - theta_dot_des
+    # mp.AddQuadraticCost(theta_p_con*theta_p_con + theta_v_con*theta_v_con)
 
-    print(mp.Solve())
+    kp = 10.0
+    kd = 0.1
+    mp.AddQuadraticCost(kp*pos + kd*vel)
+
+    # force cost
+    # mp.AddQuadraticCost(force[:].dot(force[:]))
+    mp.AddQuadraticCost(-u[:].dot(u[:]))
+
+    sol = mp.Solve()
+    print(sol)
 
     my_torque = mp.GetSolution(u)
     my_force = mp.GetSolution(force)

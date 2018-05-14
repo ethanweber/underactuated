@@ -2,7 +2,7 @@
 import numpy as np
 from pydrake.math import sin, cos
 
-def get_corner_distances(state, dim=2):
+def get_corner_distances(state, dim=2, linearize_theta=None):
     """Return distances to ground in the corner order [0,1,2,3] as a numpy array.
 
     Keyword arguments:
@@ -11,7 +11,10 @@ def get_corner_distances(state, dim=2):
     """
 
     y = state[1]
-    theta = state[dim]
+    if linearize_theta is not None:
+        theta = linearize_theta
+    else:
+        theta = state[dim]
 
     offset = .5*np.sqrt(2)*sin(np.pi/4.0+theta)
     val = sin(theta)
@@ -29,7 +32,7 @@ def get_corner_distances(state, dim=2):
 
     return np.asarray([dist_0, dist_1, dist_2, dist_3])
 
-def get_corner_x_positions(state, dim=2):
+def get_corner_x_positions(state, dim=2, linearize_theta=None):
     """Return x position of the corners in the order [0,1,2,3] as a numpy array.
 
     Keyword arguments:
@@ -38,7 +41,10 @@ def get_corner_x_positions(state, dim=2):
     """
 
     x = state[0]
-    theta = state[dim]
+    if linearize_theta is not None:
+        theta = linearize_theta
+    else:
+        theta = state[dim]
 
     offset = .5*np.sqrt(2)*cos(np.pi/4.0+theta)
     val = cos(theta)
@@ -76,12 +82,15 @@ def fix_corner_to_ground(mp, state, corner_index=0, x_coord=-0.5, dim=2):
     mp.AddConstraint(distances[corner_index] == 0.0)
     mp.AddConstraint(x_pos[corner_index] == x_coord)
 
-def add_corner_cost(mp, state, corner_index=0, x_coord=-0.5, dim=2):
-    distances = get_corner_distances(state[:], dim)
+def add_corner_cost(mp, state, corner_index=0, x_coord=-0.5, dim=2, linearize_theta=None):
     # make left corner on the ground in specified position with quadratic cost
-    x_pos = get_corner_x_positions(state, dim)
-    mp.AddQuadraticCost(distances[corner_index]**2)
-    mp.AddQuadraticCost((x_pos[corner_index] - x_coord)**2)
+
+    distances = get_corner_distances(state[:], dim, linearize_theta)
+    mp.AddQuadraticCost(distances[corner_index]*distances[corner_index])
+
+    x_pos = get_corner_x_positions(state, dim, linearize_theta)
+    x_diff = x_pos[corner_index]  - x_coord
+    mp.AddQuadraticCost(1000*x_diff*x_diff)
 
 
 max_ground_force = 1000
