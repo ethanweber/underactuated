@@ -6,6 +6,8 @@ class MeshcatCubeVisualizer:
     def __init__(self):
         self.vis = meshcat.Visualizer()
 
+        self.mblock = None # to be drawn later if wanted
+
         self.cube = self.vis["cube"]
         self.pivot = self.cube["pivot"]
         self.wheel = self.pivot["wheel"]
@@ -49,3 +51,11 @@ class MeshcatCubeVisualizer:
 
         state_initial = (x,y,theta,alpha,x_dot,y_dot,theta_dot,alpha_dot)
         self.draw_transformation(state_initial, 2)
+
+    def draw_mblock(self):
+        self.mblock = self.vis["mblock"]
+        # create and draw the mblock
+        dim = [3,1,1]
+        self.mblock.set_object(g.Box(dim))
+        temp = tf.translation_matrix([0,1,0.5])
+        self.mblock.set_transform(temp)

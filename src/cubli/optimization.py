@@ -365,10 +365,10 @@ def periodic_motion(dim=2):
         mp.AddConstraint(u_over_time[n,0] >= -max_torque)
 
     # minimize input
-    mp.AddQuadraticCost(u_over_time[:,0].dot(u_over_time[:,0]))
+    # mp.AddQuadraticCost(u_over_time[:,0].dot(u_over_time[:,0]))
 
     # maximize velocity in correct direction (left)
-    # mp.AddLinearCost(x_over_time[:,4].sum())
+    mp.AddLinearCost(-x_over_time[:,4].sum())
 
     # minimize the time
     # mp.AddLinearCost(time_used[0])
@@ -578,6 +578,191 @@ def compute_optimal_control(initial_state, final_state, min_time, max_time, max_
             # make left corner on the ground
             mp.AddConstraint(distances[0] == 0.0)
             num, loc = corner_fix
+            mp.AddConstraint(x_pos[num] == loc)
+
+    # ground forces can't pull on the ground
+    for n in range(N):
+        force = total_f[n]
+        for j in range(8):
+            mp.AddConstraint(force[j] <= max_ground_force)
+            mp.AddConstraint(force[j] >= 0)
+
+    # add complimentary constraint
+    for n in range(N):
+        force = total_f[n]
+        state = total_x[n]
+        theta = state[dim]
+
+        distances = get_corner_distances(total_x[n+1,:], dim)
+
+        s = sin(theta)
+        c = cos(theta)
+
+        z_0 = force[0]*c + force[1]*s
+        z_1 = - force[2]*s + force[3]*c
+        z_2 = - force[4]*c - force[5]*s
+        z_3 = force[6]*s - force[7]*c
+
+        xy_0 = - force[0]*s + force[1]*c
+        xy_1 = - force[2]*c - force[3]*s
+        xy_2 = force[4]*s - force[5]*c
+        xy_3 = force[6]*c + force[7]*s
+
+        mp.AddConstraint(xy_0 <= z_0*mu)
+        mp.AddConstraint(xy_0 >= -z_0*mu)
+        mp.AddConstraint(xy_1 <= z_1*mu)
+        mp.AddConstraint(xy_1 >= -z_1*mu)
+        mp.AddConstraint(xy_2 <= z_2*mu)
+        mp.AddConstraint(xy_2 >= -z_2*mu)
+        mp.AddConstraint(xy_3 <= z_3*mu)
+        mp.AddConstraint(xy_3 >= -z_3*mu)
+
+        # vector_0 = force[0] * force[1]
+        # vector_1 = force[2] * force[3]
+        # vector_2 = force[4] * force[5]
+        # vector_3 = force[6] * force[7]
+        # val = np.asarray([vector_0, vector_1, vector_2, vector_3])
+        # mp.AddConstraint(val.dot(distances) <= complimentarity_constraint_thresh)
+        # mp.AddConstraint(val.dot(distances) >= -complimentarity_constraint_thresh)
+
+        val_0 = np.asarray([force[0], force[2], force[4], force[6]])
+        val_1 = np.asarray([force[1], force[3], force[5], force[7]])
+        mp.AddConstraint(val_0.dot(distances) <= complimentarity_constraint_thresh)
+        mp.AddConstraint(val_0.dot(distances) >= -complimentarity_constraint_thresh)
+        mp.AddConstraint(val_1.dot(distances) <= complimentarity_constraint_thresh)
+        mp.AddConstraint(val_1.dot(distances) >= -complimentarity_constraint_thresh)
+
+    # initial state, no state error allowed
+    for i in range(state_len):
+        initial_state_error = x_over_time[0,i] - initial_state[i]
+        mp.AddConstraint(initial_state_error == 0.0)
+
+    # don't care about final wheel angle, so skip restriction in it
+    state_indices = [i for i in range(0, state_len)]
+    a = state_indices[0:state_len/2-1] + state_indices[state_len/2:]
+    for i in a:
+        # final
+        final_state_error = x_over_time[-1,i] - final_state[i]
+        mp.AddConstraint(final_state_error <= final_state_error_thresh)
+        mp.AddConstraint(final_state_error >= -final_state_error_thresh)
+
+    # add time constraint
+    mp.AddConstraint(time_used[0] >= min_time)
+    mp.AddConstraint(time_used[0] <= max_time)
+
+    # add torque constraints
+    for n in range(N):
+        mp.AddConstraint(u_over_time[n,0] <= max_torque)
+        mp.AddConstraint(u_over_time[n,0] >= -max_torque)
+
+    # try to keep the velocity of the wheel in the correct direction
+    # mp.AddLinearCost(x_over_time[:,-1].sum())
+
+    # mp.AddLinearCost(-x_over_time[:,1].sum())
+    # mp.AddLinearCost(-x_over_time[N//2,1])
+
+    print "Number of decision vars", mp.num_vars()
+    print(mp.Solve())
+
+    trajectory = mp.GetSolution(x_over_time)
+    input_trajectory = mp.GetSolution(u_over_time)
+    force_trajectory = mp.GetSolution(f_over_time)
+    t = mp.GetSolution(time_used)
+    time_array = np.arange(0.0, t, t/(N+1))
+
+    return trajectory, input_trajectory, force_trajectory, time_array
+
+# TODO make this control work
+def mblock_example(initial_state, final_state, min_time, max_time, max_torque, dim=2):
+
+    print("Initial State: {}".format(initial_state))
+    print("Final State: {}".format(final_state))
+
+    # a few checks
+    assert(len(initial_state) == len(final_state))
+    assert(min_time <= max_time)
+
+    # some values that can be changed if desired
+    N = 50 # number knot points
+    dynamics_error_thresh = 0.01 # error thresh on xdot = f(x,u,f)
+    floor_offset = -.01 # used to allow a little penitration
+    final_state_error_thresh = 0.01 # final state error thresh
+    max_ground_force = 100
+    # impose contraint to stay on the ground
+    stay_on_ground = False
+    stay_on_ground_tolerance = 0.1 # tolerance for leaving the ground if contstraint is used
+    complimentarity_constraint_thresh = 0.0001
+
+    fix_corner_on_ground = True
+    corner_fix = [2, 0.5] # corner index, location
+
+    mu = 0.1 # friction force
+
+    # use SNOPT in Drake
+    mp = MathematicalProgram()
+
+    # state length
+    state_len = len(initial_state)
+
+    # total time used (assuming equal time steps)
+    time_used = mp.NewContinuousVariables(1, "time_used")
+    dt = time_used/(N+1)
+
+    # input torque decision variables
+    u = mp.NewContinuousVariables(1, "u_%d" % 0) # only one input for the cube
+    u_over_time = u
+    for k in range(1,N):
+        u = mp.NewContinuousVariables(1, "u_%d" % k)
+        u_over_time = np.vstack((u_over_time, u))
+    total_u = u_over_time
+
+    # contact force decision variables
+    f = mp.NewContinuousVariables(8, "f_%d" % 0) # only one input for the cube
+    f_over_time = f
+    for k in range(1,N):
+        f = mp.NewContinuousVariables(8, "f_%d" % k)
+        f_over_time = np.vstack((f_over_time, f))
+    total_f = f_over_time
+
+    # state decision variables
+    x = mp.NewContinuousVariables(state_len, "x_%d" % 0) # for both input thrusters
+    x_over_time = x
+    for k in range(1,N+1):
+        x = mp.NewContinuousVariables(state_len, "x_%d" % k)
+        x_over_time = np.vstack((x_over_time, x))
+    total_x = x_over_time
+
+    # impose dynamic constraints
+    for n in range(N):
+        state_next = total_x[n+1]
+        dynamic_state_next = total_x[n,:] + get_nd_dynamics(total_x[n,:], total_u[n,:], total_f[n,:], dim)*dt
+        # make sure the actual and predicted align to follow dynamics
+        for j in range(state_len):
+            state_error = state_next[j] - dynamic_state_next[j]
+            mp.AddConstraint(state_error <= dynamics_error_thresh)
+            mp.AddConstraint(state_error >= -dynamics_error_thresh)
+
+    # can't penitrate the floor and can't leave the floor
+    for n in range(N):
+        distances = get_corner_distances(total_x[n,:], dim)
+
+        mp.AddConstraint(distances[0] >= floor_offset)
+        mp.AddConstraint(distances[1] >= floor_offset)
+        mp.AddConstraint(distances[2] >= floor_offset)
+        mp.AddConstraint(distances[3] >= floor_offset)
+
+        # don't leave the ground if specified
+        if stay_on_ground == True:
+            mp.AddConstraint(distances[0] <= np.sqrt(2)+stay_on_ground_tolerance)
+            mp.AddConstraint(distances[1] <= np.sqrt(2)+stay_on_ground_tolerance)
+            mp.AddConstraint(distances[2] <= np.sqrt(2)+stay_on_ground_tolerance)
+            mp.AddConstraint(distances[3] <= np.sqrt(2)+stay_on_ground_tolerance)
+
+        if fix_corner_on_ground == True:
+            x_pos = get_corner_x_positions(total_x[n,:], dim)
+            # make left corner on the ground
+            num, loc = corner_fix
+            mp.AddConstraint(distances[num] == 1.0)
             mp.AddConstraint(x_pos[num] == loc)
 
     # ground forces can't pull on the ground
